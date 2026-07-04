@@ -1,12 +1,16 @@
 """
-analyzer.pyが出力したスコアJSONから、静的サイト用のMarkdownページを生成するスクリプト。
+analyzer.pyが出力したスコアJSONから、GitHub Pagesで公開できる静的HTMLサイトを生成するスクリプト。
 
 出力構成:
-  output/site/{grade}/{target_slug}/{hash}.md   … リリース単体のページ(YAML Front Matter付き)
-  output/site/{grade}/{target_slug}/index.md    … grade×target単位の一覧ページ
-  output/site/index.md                          … 全体の一覧ページ
+  output/site/assets/style.css                  … 共通CSS
+  output/site/.nojekyll                          … GitHub PagesでのJekyll処理を無効化
+  output/site/{grade}/{target_slug}/{hash}.html  … リリース単体のページ(アフィリエイト広告枠付き)
+  output/site/{grade}/{target_slug}/index.html   … grade×target単位の一覧ページ
+  output/site/index.html                         … 全体の一覧ページ
 
 入力: output/scores/YYYY-MM-DD.json (analyzer.pyの出力)
+
+各ページ下部には広告タグを差し込むための固定枠 <div id="affiliate-slot"> を設置している。
 """
 
 from __future__ import annotations
@@ -16,6 +20,7 @@ import json
 import logging
 import re
 import sys
+from html import escape as h
 from pathlib import Path
 
 logging.basicConfig(
@@ -45,6 +50,164 @@ SCORE_AXIS_LABELS = {
     "neutrality": "質問文・見出しの中立性",
 }
 
+SITE_TITLE = "調査リリース信頼性評価"
+
+AFFILIATE_SLOT_HTML = """    <div id="affiliate-slot" class="affiliate-slot">
+      <span class="affiliate-label">広告</span>
+      <!-- ここにアフィリエイト広告タグを挿入してください -->
+    </div>"""
+
+CSS_CONTENT = """:root {
+  --color-bg: #f7f7f5;
+  --color-surface: #ffffff;
+  --color-text: #1f2328;
+  --color-muted: #57606a;
+  --color-border: #e2e2e0;
+  --color-a: #1a7f37;
+  --color-b: #9a6700;
+  --color-c: #cf222e;
+  --color-unknown: #6e7781;
+  --color-link: #0969da;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+  line-height: 1.7;
+}
+
+.site-header {
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  padding: 16px 24px;
+}
+
+.site-title {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.container {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 24px 20px 48px;
+}
+
+h1 { font-size: 1.5rem; margin-bottom: 0.5em; }
+h2 { font-size: 1.15rem; margin-top: 1.8em; }
+
+.release {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 24px;
+}
+
+.meta {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  margin: 1em 0;
+  font-size: 0.92rem;
+  color: var(--color-muted);
+}
+
+.meta dt { font-weight: 600; }
+.meta dd { margin: 0; word-break: break-all; }
+
+.grade-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #fff;
+  vertical-align: middle;
+}
+.grade-A { background: var(--color-a); }
+.grade-B { background: var(--color-b); }
+.grade-C { background: var(--color-c); }
+.grade-unknown { background: var(--color-unknown); }
+
+.score-breakdown {
+  list-style: none;
+  padding: 0;
+  margin: 0.8em 0;
+}
+.score-breakdown li {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  border-bottom: 1px dashed var(--color-border);
+  font-size: 0.92rem;
+}
+
+.flags {
+  font-size: 0.9rem;
+  color: var(--color-muted);
+}
+
+.release-list {
+  list-style: none;
+  padding: 0;
+}
+.release-item {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.release-item a {
+  color: var(--color-link);
+  text-decoration: none;
+  font-weight: 600;
+}
+.release-item a:hover { text-decoration: underline; }
+.meta-line {
+  width: 100%;
+  font-size: 0.82rem;
+  color: var(--color-muted);
+}
+
+.affiliate-slot {
+  margin-top: 32px;
+  padding: 16px;
+  border: 1px dashed var(--color-border);
+  border-radius: 8px;
+  text-align: center;
+  color: var(--color-muted);
+  font-size: 0.85rem;
+  min-height: 90px;
+}
+.affiliate-label {
+  display: block;
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+}
+
+.site-footer {
+  text-align: center;
+  padding: 24px;
+  color: var(--color-muted);
+  font-size: 0.85rem;
+}
+.site-footer a { color: var(--color-link); }
+
+.count { color: var(--color-muted); font-size: 0.9rem; }
+"""
+
 
 def grade_dir_name(grade: str | None) -> str:
     """gradeからディレクトリ名を決定する。未知の値は unknown にフォールバックする。"""
@@ -63,20 +226,42 @@ def url_hash(url: str) -> str:
     return hashlib.md5(url.encode("utf-8")).hexdigest()[:12]
 
 
-def yaml_escape(value: str) -> str:
-    """YAML Front Matter用にダブルクォート文字列をエスケープする。"""
-    return value.replace("\\", "\\\\").replace('"', '\\"').replace("\n", " ")
+def embed_meta_json(meta: dict) -> str:
+    """一覧再構築用のメタデータを非表示の<script>タグに埋め込む。
+
+    <, >, & はJSONの構造文字としては使われないため、値の中に含まれる場合のみ
+    \\uXXXX形式にエスケープする(json.loadsはこの形式を透過的に復元できる)。
+    これにより </script> によるタグの意図しないクローズや、
+    HTMLとして解釈されうる文字列の混入を防ぐ。
+    """
+    raw = json.dumps(meta, ensure_ascii=False)
+    raw = (
+        raw.replace("&", "\\u0026")
+        .replace("<", "\\u003c")
+        .replace(">", "\\u003e")
+    )
+    return f'<script type="application/json" id="release-meta">{raw}</script>'
 
 
-def yaml_list(values: list[str]) -> str:
-    """文字列リストをYAMLのフロー形式配列に変換する。"""
-    if not values:
-        return "[]"
-    return "[" + ", ".join(f'"{yaml_escape(v)}"' for v in values) + "]"
+def html_document(*, title: str, css_path: str, body: str) -> str:
+    """HTML文書全体をレンダリングする。"""
+    return f"""<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{h(title)}</title>
+<link rel="stylesheet" href="{css_path}">
+</head>
+<body>
+{body}
+</body>
+</html>
+"""
 
 
-def render_release_markdown(release: dict) -> str:
-    """1件のリリースをYAML Front Matter付きMarkdownとしてレンダリングする。"""
+def render_release_html(release: dict, *, home_path: str, css_path: str) -> str:
+    """1件のリリースをHTMLページとしてレンダリングする。"""
     score = release.get("score", {})
     scores = score.get("scores", {})
     flags = score.get("flags", [])
@@ -86,73 +271,127 @@ def render_release_markdown(release: dict) -> str:
     url = release.get("url", "")
     published_date = release.get("published_date", "")
     target = release.get("target", "")
-    grade = score.get("grade", "")
+    grade = grade_dir_name(score.get("grade"))
     total_score = score.get("total_score", "")
     one_line_summary = score.get("one_line_summary", "")
     reasoning = score.get("reasoning", "")
 
-    front_matter = "\n".join(
-        [
-            "---",
-            f'title: "{yaml_escape(title)}"',
-            f'source: "{yaml_escape(source)}"',
-            f'url: "{yaml_escape(url)}"',
-            f'published_date: "{yaml_escape(published_date)}"',
-            f'target: "{yaml_escape(target)}"',
-            f'grade: "{yaml_escape(str(grade))}"',
-            f"total_score: {total_score if isinstance(total_score, (int, float)) else 'null'}",
-            f'one_line_summary: "{yaml_escape(one_line_summary)}"',
-            f"flags: {yaml_list(flags)}",
-            "---",
-        ]
+    meta_json = embed_meta_json(
+        {
+            "title": title,
+            "source": source,
+            "url": url,
+            "published_date": published_date,
+            "target": target,
+            "grade": grade,
+            "total_score": total_score,
+            "one_line_summary": one_line_summary,
+        }
     )
 
-    score_lines = "\n".join(
-        f"- {SCORE_AXIS_LABELS.get(key, key)}: {value} / 20"
+    score_items = "\n".join(
+        f'      <li><span class="axis">{h(SCORE_AXIS_LABELS.get(key, key))}</span>'
+        f'<span class="axis-score">{h(str(value))} / 20</span></li>'
         for key, value in scores.items()
     )
     flags_line = "、".join(flags) if flags else "なし"
 
-    body = f"""
-# {title}
+    body = f"""<header class="site-header">
+  <a class="site-title" href="{home_path}">{h(SITE_TITLE)}</a>
+</header>
+<main class="container">
+  {meta_json}
+  <article class="release">
+    <h1>{h(title)}</h1>
+    <dl class="meta">
+      <dt>配信元</dt><dd>{h(source)}</dd>
+      <dt>公開日</dt><dd>{h(published_date)}</dd>
+      <dt>想定ターゲット</dt><dd>{h(target)}</dd>
+      <dt>元記事</dt><dd><a href="{h(url)}" rel="nofollow noopener" target="_blank">{h(url)}</a></dd>
+    </dl>
 
-- 配信元: {source}
-- 公開日: {published_date}
-- 想定ターゲット: {target}
-- 元記事: [{url}]({url})
+    <section class="score-summary">
+      <h2>信頼性スコア: {h(str(total_score))} / 100
+        <span class="grade-badge grade-{h(grade)}">grade {h(grade)}</span>
+      </h2>
+      <ul class="score-breakdown">
+{score_items}
+      </ul>
+      <p class="flags"><strong>該当フラグ:</strong> {h(flags_line)}</p>
+    </section>
 
-## 信頼性スコア: {total_score} / 100 (grade {grade})
+    <section class="summary">
+      <h2>一言コメント</h2>
+      <p>{h(one_line_summary)}</p>
+    </section>
 
-{score_lines}
+    <section class="reasoning">
+      <h2>評価理由</h2>
+      <p>{h(reasoning)}</p>
+    </section>
+  </article>
 
-**該当フラグ**: {flags_line}
+{AFFILIATE_SLOT_HTML}
+</main>
+<footer class="site-footer">
+  <p><a href="{home_path}">&laquo; 一覧に戻る</a></p>
+</footer>"""
 
-## 一言コメント
-
-{one_line_summary}
-
-## 評価理由
-
-{reasoning}
-"""
-    return front_matter + "\n" + body.strip() + "\n"
+    return html_document(title=f"{title} | {SITE_TITLE}", css_path=css_path, body=body)
 
 
-def render_index_markdown(title: str, entries: list[dict]) -> str:
-    """一覧ページ(index.md)をレンダリングする。entriesは公開日降順を想定。"""
-    lines = [f"# {title}", "", f"件数: {len(entries)}", ""]
-    for entry in entries:
-        lines.append(
-            f"- [{entry['title']}]({entry['relative_path']}) "
-            f"— {entry['grade']}評価 ({entry['total_score']}点) "
-            f"/ {entry['source']} / {entry['published_date']}"
-        )
-    lines.append("")
-    return "\n".join(lines)
+def render_index_html(
+    *,
+    page_title: str,
+    entries: list[dict],
+    home_path: str,
+    css_path: str,
+    is_top_level: bool,
+) -> str:
+    """一覧ページ(index.html)をレンダリングする。entriesは公開日降順を想定。"""
+    items = "\n".join(
+        f'''    <li class="release-item">
+      <span class="grade-badge grade-{h(entry["grade"])}">grade {h(entry["grade"])}</span>
+      <a href="{h(entry["relative_path"])}">{h(entry["title"])}</a>
+      <span class="meta-line">{h(str(entry["total_score"]))}点 / {h(entry["source"])} / {h(entry["published_date"])}</span>
+    </li>'''
+        for entry in entries
+    )
+
+    if is_top_level:
+        header_link = f'<span class="site-title">{h(SITE_TITLE)}</span>'
+    else:
+        header_link = f'<a class="site-title" href="{home_path}">{h(SITE_TITLE)}</a>'
+
+    body = f"""<header class="site-header">
+  {header_link}
+</header>
+<main class="container">
+  <h1>{h(page_title)}</h1>
+  <p class="count">件数: {len(entries)}</p>
+  <ul class="release-list">
+{items}
+  </ul>
+
+{AFFILIATE_SLOT_HTML}
+</main>
+<footer class="site-footer">
+  <p>調査リリースの信頼性を客観的な開示情報に基づき評価しています。</p>
+</footer>"""
+
+    return html_document(title=page_title, css_path=css_path, body=body)
+
+
+def write_assets(site_dir: Path) -> None:
+    """共通CSSとGitHub Pages用の.nojekyllを書き出す。"""
+    assets_dir = site_dir / "assets"
+    assets_dir.mkdir(parents=True, exist_ok=True)
+    (assets_dir / "style.css").write_text(CSS_CONTENT, encoding="utf-8")
+    (site_dir / ".nojekyll").write_text("", encoding="utf-8")
 
 
 def write_release_pages(releases: list[dict], site_dir: Path) -> int:
-    """スコア付きリリースをMarkdownページとして書き出す。書き出した件数を返す。"""
+    """スコア付きリリースをHTMLページとして書き出す。書き出した件数を返す。"""
     written = 0
     for release in releases:
         score = release.get("score", {})
@@ -167,33 +406,22 @@ def write_release_pages(releases: list[dict], site_dir: Path) -> int:
         page_dir = site_dir / grade / target_slug
         page_dir.mkdir(parents=True, exist_ok=True)
 
-        filename = f"{url_hash(release.get('url', ''))}.md"
+        filename = f"{url_hash(release.get('url', ''))}.html"
         page_path = page_dir / filename
-        page_path.write_text(render_release_markdown(release), encoding="utf-8")
+        html_text = render_release_html(
+            release,
+            home_path="../../index.html",
+            css_path="../../assets/style.css",
+        )
+        page_path.write_text(html_text, encoding="utf-8")
         written += 1
 
     return written
 
 
-_FRONT_MATTER_PATTERN = re.compile(r"\A---\n(.*?)\n---\n", re.DOTALL)
-
-
-def parse_front_matter(markdown_text: str) -> dict[str, str]:
-    """generate_siteが出力したYAML Front Matterを簡易パースする(このスクリプト専用)。"""
-    match = _FRONT_MATTER_PATTERN.match(markdown_text)
-    if not match:
-        return {}
-    data: dict[str, str] = {}
-    for line in match.group(1).splitlines():
-        if ":" not in line:
-            continue
-        key, _, value = line.partition(":")
-        key = key.strip()
-        value = value.strip()
-        if value.startswith('"') and value.endswith('"') and len(value) >= 2:
-            value = value[1:-1]
-        data[key] = value
-    return data
+_META_SCRIPT_PATTERN = re.compile(
+    r'<script type="application/json" id="release-meta">(.*?)</script>', re.DOTALL
+)
 
 
 def scan_existing_pages(site_dir: Path) -> list[dict]:
@@ -203,24 +431,31 @@ def scan_existing_pages(site_dir: Path) -> list[dict]:
         return entries
 
     for grade_dir in sorted(p for p in site_dir.iterdir() if p.is_dir()):
+        if grade_dir.name == "assets":
+            continue
         for target_dir in sorted(p for p in grade_dir.iterdir() if p.is_dir()):
-            for page_path in sorted(target_dir.glob("*.md")):
-                if page_path.name == "index.md":
+            for page_path in sorted(target_dir.glob("*.html")):
+                if page_path.name == "index.html":
                     continue
-                front = parse_front_matter(page_path.read_text(encoding="utf-8"))
-                total_score_raw = front.get("total_score", "")
+                text = page_path.read_text(encoding="utf-8")
+                match = _META_SCRIPT_PATTERN.search(text)
+                if not match:
+                    logger.warning("メタデータが見つかりません: %s", page_path)
+                    continue
+                raw_json = match.group(1)
                 try:
-                    total_score: object = int(total_score_raw)
-                except (TypeError, ValueError):
-                    total_score = total_score_raw
+                    meta = json.loads(raw_json)
+                except json.JSONDecodeError:
+                    logger.warning("メタデータのパースに失敗しました: %s", page_path)
+                    continue
                 entries.append(
                     {
-                        "title": front.get("title", ""),
-                        "source": front.get("source", ""),
-                        "published_date": front.get("published_date", ""),
+                        "title": meta.get("title", ""),
+                        "source": meta.get("source", ""),
+                        "published_date": meta.get("published_date", ""),
                         "grade": grade_dir.name,
                         "target_slug": target_dir.name,
-                        "total_score": total_score,
+                        "total_score": meta.get("total_score", ""),
                         "filename": page_path.name,
                     }
                 )
@@ -228,7 +463,7 @@ def scan_existing_pages(site_dir: Path) -> list[dict]:
 
 
 def build_indexes(entries: list[dict], site_dir: Path) -> None:
-    """スキャン済みエントリ全体から、grade×target単位と全体のindex.mdを再構築する。"""
+    """スキャン済みエントリ全体から、grade×target単位と全体のindex.htmlを再構築する。"""
     grouped: dict[tuple[str, str], list[dict]] = {}
     for entry in entries:
         grouped.setdefault((entry["grade"], entry["target_slug"]), []).append(entry)
@@ -240,10 +475,17 @@ def build_indexes(entries: list[dict], site_dir: Path) -> None:
         local_entries = [
             {**e, "relative_path": e["filename"]} for e in group_entries
         ]
-        index_path = site_dir / grade / target_slug / "index.md"
+        index_path = site_dir / grade / target_slug / "index.html"
         index_title = f"grade {grade} / {target_slug} 一覧"
         index_path.write_text(
-            render_index_markdown(index_title, local_entries), encoding="utf-8"
+            render_index_html(
+                page_title=index_title,
+                entries=local_entries,
+                home_path="../../index.html",
+                css_path="../../assets/style.css",
+                is_top_level=False,
+            ),
+            encoding="utf-8",
         )
 
     all_entries = sorted(entries, key=lambda e: e["published_date"], reverse=True)
@@ -252,18 +494,25 @@ def build_indexes(entries: list[dict], site_dir: Path) -> None:
         for e in all_entries
     ]
     site_dir.mkdir(parents=True, exist_ok=True)
-    (site_dir / "index.md").write_text(
-        render_index_markdown("調査リリース信頼性評価 一覧", top_entries),
+    (site_dir / "index.html").write_text(
+        render_index_html(
+            page_title=SITE_TITLE,
+            entries=top_entries,
+            home_path="index.html",
+            css_path="assets/style.css",
+            is_top_level=True,
+        ),
         encoding="utf-8",
     )
 
 
 def build_site(releases: list[dict], site_dir: Path = SITE_DIR) -> None:
-    """スコア付きリリースのリストから、当日分のページを追加し、サイト全体のインデックスを再構築する。"""
+    """スコア付きリリースのリストから、当日分のページを追加し、サイト全体を再構築する。"""
+    write_assets(site_dir)
     written = write_release_pages(releases, site_dir)
 
     # インデックスは過去分も含めてsite_dir全体を再スキャンして再構築する
-    # (実行日ごとにindex.mdが当日分だけで上書きされるのを防ぐため)
+    # (実行日ごとにindex.htmlが当日分だけで上書きされるのを防ぐため)
     all_entries = scan_existing_pages(site_dir)
     build_indexes(all_entries, site_dir)
 

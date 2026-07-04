@@ -12,6 +12,8 @@ concurrency:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 env:
   TZ: Asia/Tokyo
@@ -20,6 +22,9 @@ jobs:
   run-pipeline:
     runs-on: ubuntu-latest
     timeout-minutes: 90
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -52,3 +57,15 @@ jobs:
         with:
           commit_message: "chore: update daily survey release scoring output"
           file_pattern: "output/**"
+
+      - name: Setup GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: output/site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
