@@ -1,0 +1,54 @@
+name: Daily Survey Release Scoring
+
+on:
+  schedule:
+    # 毎日06:00 JST (21:00 UTC) に実行
+    - cron: "0 21 * * *"
+  workflow_dispatch: {}
+
+concurrency:
+  group: daily-survey-scoring
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+env:
+  TZ: Asia/Tokyo
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Fetch RSS feeds (PRTIMES / @Press)
+        run: python fetch_rss.py
+
+      - name: Classify target (consumer / business)
+        run: python classify_target.py
+
+      - name: Score releases via Claude Batch API
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python analyzer.py
+
+      - name: Generate static site pages
+        run: python generate_site.py
+
+      - name: Commit and push generated output
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: update daily survey release scoring output"
+          file_pattern: "output/**"

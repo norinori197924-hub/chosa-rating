@@ -216,3 +216,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Pipeline output (RSS抽出結果・分類結果・スコア・生成サイト)
+output/
