@@ -217,5 +217,8 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
-# Pipeline output (RSS抽出結果・分類結果・スコア・生成サイト)
-output/
+# Pipeline output
+# - releases/classified/scores は中間データのため除外
+# - site/ は公開用の静的サイトのためコミット対象に含める
+output/*
+!output/site/
