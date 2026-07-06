@@ -226,6 +226,8 @@ def collect_results(client: anthropic.Anthropic, batch_id: str) -> dict[str, dic
             )
             try:
                 scores_by_id[result.custom_id] = json.loads(text)
+                if not scores_by_id[result.custom_id].get("reasoning", "").strip():
+                    scores_by_id[result.custom_id]["reasoning"] = "特定不能（モデルが理由を生成できませんでした）"
             except json.JSONDecodeError:
                 logger.error("JSONのパースに失敗しました: %s", result.custom_id)
                 scores_by_id[result.custom_id] = {"error": "invalid_json", "raw": text}
