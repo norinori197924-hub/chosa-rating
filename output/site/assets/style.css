@@ -74,14 +74,27 @@
 
 body {
   margin: 0;
-  background: var(--paper);
+  background-color: var(--paper);
+  /* 控えめなドットグリッドの背景パターン(テーマの--hairline色に追従するため両モードで破綻しない) */
+  background-image: radial-gradient(circle at 1px 1px, var(--hairline) 1px, transparent 0);
+  background-size: 26px 26px;
+  background-attachment: fixed;
   color: var(--ink);
   font-family: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
   line-height: 1.7;
 }
 
 .masthead {
-  background: var(--navy-900);
+  position: relative;
+  background-color: var(--navy-900);
+  /* 斜線パターン+半透明の地色を重ねて、白文字の可読性を保ったまま控えめな装飾にする */
+  background-image: repeating-linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.05) 0px,
+    rgba(255, 255, 255, 0.05) 1px,
+    transparent 1px,
+    transparent 14px
+  );
   color: #fff;
   padding: 28px 24px 22px;
   border-bottom: 3px solid var(--gold);
@@ -203,19 +216,6 @@ h2.section-title {
 }
 .release-meta .sep { margin: 0 6px; }
 
-.axis-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 14px;
-  font-size: 0.74rem;
-  color: var(--muted);
-  margin: 8px 0 6px;
-  border-top: 1px dashed var(--hairline);
-  padding-top: 8px;
-}
-.axis-row span b { color: var(--ink); font-variant-numeric: tabular-nums; }
-.axis-row.full { font-size: 0.86rem; gap: 8px 20px; border-top: none; padding-top: 0; margin: 0 0 16px; }
-
 .summary-line {
   font-size: 0.88rem;
   font-style: italic;
@@ -311,10 +311,135 @@ footer {
 :root[data-theme="dark"] .back-link a { color: var(--gold); }
 .back-link a:hover { text-decoration: underline; }
 
+/* gradeの意味を示す凡例 */
+.grade-legend {
+  max-width: 880px;
+  margin: 14px auto 0;
+  padding: 0 24px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+}
+.grade-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+.grade-legend-item b { color: var(--ink); }
+.grade-legend-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  font-family: Georgia, serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+.grade-legend-badge[data-grade="A"] { background: var(--grade-a-soft); color: var(--grade-a); }
+.grade-legend-badge[data-grade="B"] { background: var(--grade-b-soft); color: var(--grade-b); }
+.grade-legend-badge[data-grade="C"] { background: var(--grade-c-soft); color: var(--grade-c); }
+
+/* 検索・フィルタツールバー(全体一覧ページのみ) */
+.toolbar {
+  max-width: 880px;
+  margin: 18px auto 0;
+  padding: 0 24px;
+}
+.search-bar input[type="search"] {
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 0.95rem;
+  border: 1px solid var(--hairline);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--ink);
+}
+.search-bar input[type="search"]:focus {
+  outline: 2px solid var(--navy-700);
+  outline-offset: 1px;
+}
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+.filter-bar select {
+  padding: 7px 10px;
+  font-size: 0.82rem;
+  border: 1px solid var(--hairline);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--ink);
+}
+.result-count {
+  margin: 10px 0 0;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+.no-results { display: none; color: var(--muted); font-size: 0.9rem; padding: 12px 0; }
+.no-results.is-visible { display: block; }
+
+/* ジャンルタグ */
+.genre-tag {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--hairline);
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+/* 5軸スコアのバー表示 */
+.axis-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin: 8px 0 6px;
+}
+.axis-bar-row {
+  display: grid;
+  grid-template-columns: 6.5em 1fr 2.4em;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+.axis-bar-track {
+  height: 5px;
+  border-radius: 3px;
+  background: var(--hairline);
+  overflow: hidden;
+}
+.axis-bar-fill {
+  display: block;
+  height: 100%;
+  background: var(--navy-700);
+  border-radius: 3px;
+}
+@media (prefers-color-scheme: dark) { .axis-bar-fill { background: var(--gold); } }
+:root[data-theme="dark"] .axis-bar-fill { background: var(--gold); }
+.axis-bar-value { text-align: right; font-variant-numeric: tabular-nums; color: var(--ink); }
+
+.axis-bars-full {
+  margin: 0 0 16px;
+  gap: 7px;
+}
+.axis-bars-full .axis-bar-row {
+  grid-template-columns: 11em 1fr 3em;
+  font-size: 0.84rem;
+}
+.axis-bars-full .axis-bar-track { height: 7px; }
+
 @media (max-width: 560px) {
   .release-card { grid-template-columns: 64px 1fr; }
   .score-block { grid-column: 1 / -1; text-align: left; display: flex; align-items: baseline; gap: 8px; }
   .summary-bar { grid-template-columns: 1fr; }
   .detail-head { flex-direction: column; }
   .detail-head .score-block { text-align: left; }
+  .axis-bar-row, .axis-bars-full .axis-bar-row { grid-template-columns: 5.5em 1fr 2em; }
 }

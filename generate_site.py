@@ -5,6 +5,9 @@ analyzer.pyが出力したスコアJSONから、GitHub Pagesで公開できる�
   - ネイビー×白ベース、gradeバッジ(A=緑、B=黄、C=赤)
   - セリフの見出し+ゴシック本文、マストヘッド+カード型レイアウト
   - ライト/ダークモード両対応(prefers-color-scheme と data-theme 属性トグルの両方に追従)
+  - CSSのみによる控えめな背景パターン(ヘッダー斜線 / 本文ドットグリッド)
+  - 全体一覧ページにはキーワード検索・ジャンル/対象/評価/期間フィルタ(クライアントサイドJS)
+  - 一覧・詳細ページには5軸スコアのバー表示とgrade凡例を追加
 
 出力構成:
   output/site/assets/style.css                  … 共通CSS
@@ -64,6 +67,25 @@ SCORE_AXIS_SHORT_LABELS = {
     "conflict_of_interest": "利益相反",
     "neutrality": "中立性",
 }
+
+# 軸ごとの簡易アイコン(バー表示の視認性向上用)
+AXIS_ICONS = {
+    "transparency": "🔍",
+    "methodology": "📋",
+    "sample_validity": "👥",
+    "conflict_of_interest": "⚖️",
+    "neutrality": "🎯",
+}
+
+# classify_target.pyがgenreを付与していない旧データ向けのフォールバック値
+GENRE_UNKNOWN = "その他"
+
+# gradeの意味を示す凡例(一覧ページに表示)
+GRADE_LEGEND = [
+    ("A", "優良", "開示水準が高く、利益相反や誘導的表現の懸念が少ない"),
+    ("B", "要注意", "一部の開示情報が不足しており、独自の検証が難しい"),
+    ("C", "参考程度", "開示水準が低い、または利益相反・誘導的表現の懸念がある"),
+]
 
 SITE_TITLE = "調査リリース信頼性評価"
 SITE_TAGLINE = "SURVEY RELEASE TRUST INDEX"
@@ -149,14 +171,27 @@ CSS_CONTENT = """:root {
 
 body {
   margin: 0;
-  background: var(--paper);
+  background-color: var(--paper);
+  /* 控えめなドットグリッドの背景パターン(テーマの--hairline色に追従するため両モードで破綻しない) */
+  background-image: radial-gradient(circle at 1px 1px, var(--hairline) 1px, transparent 0);
+  background-size: 26px 26px;
+  background-attachment: fixed;
   color: var(--ink);
   font-family: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
   line-height: 1.7;
 }
 
 .masthead {
-  background: var(--navy-900);
+  position: relative;
+  background-color: var(--navy-900);
+  /* 斜線パターン+半透明の地色を重ねて、白文字の可読性を保ったまま控えめな装飾にする */
+  background-image: repeating-linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.05) 0px,
+    rgba(255, 255, 255, 0.05) 1px,
+    transparent 1px,
+    transparent 14px
+  );
   color: #fff;
   padding: 28px 24px 22px;
   border-bottom: 3px solid var(--gold);
@@ -278,19 +313,6 @@ h2.section-title {
 }
 .release-meta .sep { margin: 0 6px; }
 
-.axis-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 14px;
-  font-size: 0.74rem;
-  color: var(--muted);
-  margin: 8px 0 6px;
-  border-top: 1px dashed var(--hairline);
-  padding-top: 8px;
-}
-.axis-row span b { color: var(--ink); font-variant-numeric: tabular-nums; }
-.axis-row.full { font-size: 0.86rem; gap: 8px 20px; border-top: none; padding-top: 0; margin: 0 0 16px; }
-
 .summary-line {
   font-size: 0.88rem;
   font-style: italic;
@@ -386,13 +408,213 @@ footer {
 :root[data-theme="dark"] .back-link a { color: var(--gold); }
 .back-link a:hover { text-decoration: underline; }
 
+/* gradeの意味を示す凡例 */
+.grade-legend {
+  max-width: 880px;
+  margin: 14px auto 0;
+  padding: 0 24px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+}
+.grade-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+.grade-legend-item b { color: var(--ink); }
+.grade-legend-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  font-family: Georgia, serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+.grade-legend-badge[data-grade="A"] { background: var(--grade-a-soft); color: var(--grade-a); }
+.grade-legend-badge[data-grade="B"] { background: var(--grade-b-soft); color: var(--grade-b); }
+.grade-legend-badge[data-grade="C"] { background: var(--grade-c-soft); color: var(--grade-c); }
+
+/* 検索・フィルタツールバー(全体一覧ページのみ) */
+.toolbar {
+  max-width: 880px;
+  margin: 18px auto 0;
+  padding: 0 24px;
+}
+.search-bar input[type="search"] {
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 0.95rem;
+  border: 1px solid var(--hairline);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--ink);
+}
+.search-bar input[type="search"]:focus {
+  outline: 2px solid var(--navy-700);
+  outline-offset: 1px;
+}
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+.filter-bar select {
+  padding: 7px 10px;
+  font-size: 0.82rem;
+  border: 1px solid var(--hairline);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--ink);
+}
+.result-count {
+  margin: 10px 0 0;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+.no-results { display: none; color: var(--muted); font-size: 0.9rem; padding: 12px 0; }
+.no-results.is-visible { display: block; }
+
+/* ジャンルタグ */
+.genre-tag {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--hairline);
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+/* 5軸スコアのバー表示 */
+.axis-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin: 8px 0 6px;
+}
+.axis-bar-row {
+  display: grid;
+  grid-template-columns: 6.5em 1fr 2.4em;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+.axis-bar-track {
+  height: 5px;
+  border-radius: 3px;
+  background: var(--hairline);
+  overflow: hidden;
+}
+.axis-bar-fill {
+  display: block;
+  height: 100%;
+  background: var(--navy-700);
+  border-radius: 3px;
+}
+@media (prefers-color-scheme: dark) { .axis-bar-fill { background: var(--gold); } }
+:root[data-theme="dark"] .axis-bar-fill { background: var(--gold); }
+.axis-bar-value { text-align: right; font-variant-numeric: tabular-nums; color: var(--ink); }
+
+.axis-bars-full {
+  margin: 0 0 16px;
+  gap: 7px;
+}
+.axis-bars-full .axis-bar-row {
+  grid-template-columns: 11em 1fr 3em;
+  font-size: 0.84rem;
+}
+.axis-bars-full .axis-bar-track { height: 7px; }
+
 @media (max-width: 560px) {
   .release-card { grid-template-columns: 64px 1fr; }
   .score-block { grid-column: 1 / -1; text-align: left; display: flex; align-items: baseline; gap: 8px; }
   .summary-bar { grid-template-columns: 1fr; }
   .detail-head { flex-direction: column; }
   .detail-head .score-block { text-align: left; }
+  .axis-bar-row, .axis-bars-full .axis-bar-row { grid-template-columns: 5.5em 1fr 2em; }
 }
+"""
+
+SEARCH_JS_CONTENT = """(function () {
+  "use strict";
+  var dataEl = document.getElementById("site-data");
+  if (!dataEl) return;
+
+  var entries;
+  try {
+    entries = JSON.parse(dataEl.textContent);
+  } catch (err) {
+    return;
+  }
+
+  var searchInput = document.getElementById("site-search");
+  var genreSelect = document.getElementById("filter-genre");
+  var targetSelect = document.getElementById("filter-target");
+  var gradeSelect = document.getElementById("filter-grade");
+  var periodSelect = document.getElementById("filter-period");
+  var resultCount = document.getElementById("result-count");
+  var noResults = document.getElementById("no-results");
+  if (!searchInput || !genreSelect || !targetSelect || !gradeSelect || !periodSelect) return;
+
+  var cardById = {};
+  document.querySelectorAll(".release-card[data-id]").forEach(function (card) {
+    cardById[card.getAttribute("data-id")] = card;
+  });
+
+  function normalize(value) {
+    return (value || "").toString().toLowerCase();
+  }
+
+  function matchesEntry(entry, query) {
+    if (query) {
+      var haystack = normalize(entry.title) + " " + normalize(entry.body_text);
+      if (haystack.indexOf(query) === -1) return false;
+    }
+    if (genreSelect.value && entry.genre !== genreSelect.value) return false;
+    if (targetSelect.value && entry.target !== targetSelect.value) return false;
+    if (gradeSelect.value && entry.grade !== gradeSelect.value) return false;
+    if (periodSelect.value) {
+      var days = parseInt(periodSelect.value, 10);
+      var published = new Date(entry.date);
+      if (isNaN(published.getTime())) return false;
+      var cutoffMs = Date.now() - days * 24 * 60 * 60 * 1000;
+      if (published.getTime() < cutoffMs) return false;
+    }
+    return true;
+  }
+
+  function applyFilters() {
+    var query = normalize(searchInput.value.trim());
+    var visible = 0;
+    entries.forEach(function (entry) {
+      var card = cardById[entry.id];
+      if (!card) return;
+      var ok = matchesEntry(entry, query);
+      card.style.display = ok ? "" : "none";
+      if (ok) visible += 1;
+    });
+    if (resultCount) {
+      resultCount.textContent = visible + " 件表示中(全 " + entries.length + " 件)";
+    }
+    if (noResults) {
+      noResults.classList.toggle("is-visible", visible === 0);
+    }
+  }
+
+  [searchInput, genreSelect, targetSelect, gradeSelect, periodSelect].forEach(function (el) {
+    el.addEventListener("input", applyFilters);
+    el.addEventListener("change", applyFilters);
+  });
+
+  applyFilters();
+})();
 """
 
 
@@ -413,21 +635,60 @@ def url_hash(url: str) -> str:
     return hashlib.md5(url.encode("utf-8")).hexdigest()[:12]
 
 
-def embed_meta_json(meta: dict) -> str:
-    """一覧再構築用のメタデータを非表示の<script>タグに埋め込む。
+def embed_json_script(data, script_id: str) -> str:
+    """任意のデータを非表示の<script>タグに埋め込む。
 
     <, >, & はJSONの構造文字としては使われないため、値の中に含まれる場合のみ
     \\uXXXX形式にエスケープする(json.loadsはこの形式を透過的に復元できる)。
     これにより </script> によるタグの意図しないクローズや、
     HTMLとして解釈されうる文字列の混入を防ぐ。
     """
-    raw = json.dumps(meta, ensure_ascii=False)
+    raw = json.dumps(data, ensure_ascii=False)
     raw = (
         raw.replace("&", "\\u0026")
         .replace("<", "\\u003c")
         .replace(">", "\\u003e")
     )
-    return f'<script type="application/json" id="release-meta">{raw}</script>'
+    return f'<script type="application/json" id="{script_id}">{raw}</script>'
+
+
+def embed_meta_json(meta: dict) -> str:
+    """一覧再構築用のリリースメタデータを非表示の<script>タグに埋め込む。"""
+    return embed_json_script(meta, "release-meta")
+
+
+def render_axis_bars(scores: dict, *, labels: dict, variant: str) -> str:
+    """5軸スコアをバー visualization としてレンダリングする(variant: 'compact' | 'full')。"""
+    if not scores:
+        return ""
+    rows = []
+    for key, value in scores.items():
+        try:
+            pct = max(0, min(100, round(float(value) / 20 * 100)))
+        except (TypeError, ValueError):
+            pct = 0
+        label = labels.get(key, key)
+        icon = AXIS_ICONS.get(key, "")
+        rows.append(
+            f'    <div class="axis-bar-row">'
+            f'<span class="axis-bar-label">{icon} {h(label)}</span>'
+            f'<span class="axis-bar-track"><span class="axis-bar-fill" style="width:{pct}%"></span></span>'
+            f'<span class="axis-bar-value">{h(str(value))}</span>'
+            f"</div>"
+        )
+    rows_html = "\n".join(rows)
+    return f'<div class="axis-bars axis-bars-{variant}">\n{rows_html}\n    </div>'
+
+
+def render_grade_legend() -> str:
+    """gradeの意味を示す凡例をレンダリングする。"""
+    items = "\n".join(
+        f'    <div class="grade-legend-item"><span class="grade-legend-badge" data-grade="{h(letter)}">{h(letter)}</span><b>{h(label)}</b><span>{h(desc)}</span></div>'
+        for letter, label, desc in GRADE_LEGEND
+    )
+    return f"""<div class="grade-legend">
+{items}
+  </div>"""
 
 
 def html_document(*, title: str, css_path: str, body: str) -> str:
@@ -458,10 +719,12 @@ def render_release_html(release: dict, *, home_path: str, css_path: str) -> str:
     url = release.get("url", "")
     published_date = release.get("published_date", "")
     target = release.get("target", "")
+    genre = release.get("genre") or GENRE_UNKNOWN
     grade = grade_dir_name(score.get("grade"))
     total_score = score.get("total_score", "")
     one_line_summary = score.get("one_line_summary", "")
     reasoning = score.get("reasoning", "")
+    body_text = release.get("body_text", "")
 
     meta_json = embed_meta_json(
         {
@@ -470,17 +733,16 @@ def render_release_html(release: dict, *, home_path: str, css_path: str) -> str:
             "url": url,
             "published_date": published_date,
             "target": target,
+            "genre": genre,
             "grade": grade,
             "total_score": total_score,
             "one_line_summary": one_line_summary,
             "scores": scores,
+            "body_text": body_text[:400],
         }
     )
 
-    axis_items = "\n".join(
-        f'      <span>{h(SCORE_AXIS_LABELS.get(key, key))} <b>{h(str(value))}</b>/20</span>'
-        for key, value in scores.items()
-    )
+    axis_bars = render_axis_bars(scores, labels=SCORE_AXIS_LABELS, variant="full")
     flags_line = "、".join(flags) if flags else "なし"
 
     body = f"""<div class="masthead">
@@ -496,7 +758,7 @@ def render_release_html(release: dict, *, home_path: str, css_path: str) -> str:
       <div class="grade-pill"><span class="letter">{h(grade)}</span><span class="word">GRADE</span></div>
       <div class="detail-title-block">
         <h1 class="detail-title">{h(title)}</h1>
-        <div class="release-meta">{h(source)}<span class="sep">/</span>{h(published_date)}<span class="sep">/</span>{h(target)}</div>
+        <div class="release-meta">{h(source)}<span class="sep">/</span>{h(published_date)}<span class="sep">/</span>{h(target)}<span class="sep">/</span><span class="genre-tag">{h(genre)}</span></div>
         <div class="source-link">元記事: <a href="{h(url)}" rel="nofollow noopener" target="_blank">{h(url)}</a></div>
       </div>
       <div class="score-block">
@@ -505,9 +767,7 @@ def render_release_html(release: dict, *, home_path: str, css_path: str) -> str:
       </div>
     </div>
 
-    <div class="axis-row full">
-{axis_items}
-    </div>
+    {axis_bars}
     <p class="summary-line">「{h(one_line_summary)}」</p>
     <p class="flags-line"><b>該当フラグ:</b> {h(flags_line)}</p>
 
@@ -529,24 +789,26 @@ def render_release_html(release: dict, *, home_path: str, css_path: str) -> str:
 def render_index_card(entry: dict) -> str:
     """一覧ページ内の1リリース分のカードをレンダリングする。"""
     grade = entry.get("grade", GRADE_UNKNOWN)
+    genre = entry.get("genre") or GENRE_UNKNOWN
     scores = entry.get("scores") or {}
-    axis_spans = " ".join(
-        f'<span>{h(SCORE_AXIS_SHORT_LABELS.get(key, key))} <b>{h(str(value))}</b>/20</span>'
-        for key, value in scores.items()
-    )
-    axis_row = f'      <div class="axis-row">{axis_spans}</div>\n' if axis_spans else ""
+    axis_bars = render_axis_bars(scores, labels=SCORE_AXIS_SHORT_LABELS, variant="compact")
 
     one_line_summary = entry.get("one_line_summary", "")
     summary_line = (
         f'      <p class="summary-line">「{h(one_line_summary)}」</p>\n' if one_line_summary else ""
     )
 
-    return f"""  <article class="release-card" data-grade="{h(grade)}">
+    # filenameはURLハッシュ由来のため、同一記事が別日に別grade/targetで再スコアされると衝突しうる。
+    # relative_pathはgrade/target_slugを含むため一覧ページ内で一意になる。
+    entry_id = entry.get("relative_path") or (entry.get("filename") or "").rsplit(".", 1)[0]
+
+    return f"""  <article class="release-card" data-grade="{h(grade)}" data-id="{h(entry_id)}">
     <div class="grade-pill"><span class="letter">{h(grade)}</span><span class="word">GRADE</span></div>
     <div class="release-body">
       <h3><a href="{h(entry.get('relative_path', ''))}">{h(entry.get('title', ''))}</a></h3>
-      <div class="release-meta">{h(entry.get('source', ''))}<span class="sep">/</span>{h(entry.get('published_date', ''))}<span class="sep">/</span>{h(entry.get('target', ''))}</div>
-{axis_row}{summary_line}    </div>
+      <div class="release-meta">{h(entry.get('source', ''))}<span class="sep">/</span>{h(entry.get('published_date', ''))}<span class="sep">/</span>{h(entry.get('target', ''))}<span class="sep">/</span><span class="genre-tag">{h(genre)}</span></div>
+      {axis_bars}
+{summary_line}    </div>
     <div class="score-block">
       <div class="value">{h(str(entry.get('total_score', '')))}</div>
       <div class="of100">/ 100点</div>
@@ -585,6 +847,60 @@ def render_index_html(
     else:
         brand_html = f'<a class="brand" href="{home_path}">{h(SITE_TITLE)}</a>'
 
+    grade_legend = render_grade_legend()
+
+    toolbar_html = ""
+    search_script_tag = ""
+    if is_top_level:
+        distinct_genres = sorted({(e.get("genre") or GENRE_UNKNOWN) for e in entries})
+        genre_options = "\n".join(
+            f'      <option value="{h(g)}">{h(g)}</option>' for g in distinct_genres
+        )
+        search_payload = [
+            {
+                "id": e.get("relative_path") or (e.get("filename") or "").rsplit(".", 1)[0],
+                "title": e.get("title", ""),
+                "body_text": (e.get("body_text") or "")[:400],
+                "genre": e.get("genre") or GENRE_UNKNOWN,
+                "target": e.get("target", ""),
+                "grade": e.get("grade", GRADE_UNKNOWN),
+                "date": e.get("published_date", ""),
+            }
+            for e in entries
+        ]
+        site_data_json = embed_json_script(search_payload, "site-data")
+
+        toolbar_html = f"""<div class="toolbar">
+  <div class="search-bar">
+    <input type="search" id="site-search" placeholder="キーワードで検索(タイトル・本文)" aria-label="キーワード検索">
+  </div>
+  <div class="filter-bar">
+    <select id="filter-genre" aria-label="ジャンルで絞り込み">
+      <option value="">ジャンル: すべて</option>
+{genre_options}
+    </select>
+    <select id="filter-target" aria-label="対象で絞り込み">
+      <option value="">対象: すべて</option>
+      <option value="消費者向け">消費者向け</option>
+      <option value="企業向け">企業向け</option>
+    </select>
+    <select id="filter-grade" aria-label="評価で絞り込み">
+      <option value="">評価: すべて</option>
+      <option value="A">grade A</option>
+      <option value="B">grade B</option>
+      <option value="C">grade C</option>
+    </select>
+    <select id="filter-period" aria-label="期間で絞り込み">
+      <option value="">期間: すべて</option>
+      <option value="7">直近1週間</option>
+      <option value="30">直近1ヶ月</option>
+    </select>
+  </div>
+  <p id="result-count" class="result-count"></p>
+</div>
+{site_data_json}"""
+        search_script_tag = '<script src="assets/search.js" defer></script>'
+
     body = f"""<div class="masthead">
   <div class="masthead-inner">
     {brand_html}
@@ -596,8 +912,13 @@ def render_index_html(
 {stat_tiles}
 </div>
 
+{grade_legend}
+
+{toolbar_html}
+
 <main>
   <h2 class="section-title">{h(page_title)}</h2>
+  <p id="no-results" class="no-results">条件に一致するリリースが見つかりませんでした。</p>
 
 {cards}
 
@@ -606,16 +927,18 @@ def render_index_html(
 
 <footer>
   調査リリースの信頼性を客観的な開示情報に基づき評価しています。
-</footer>"""
+</footer>
+{search_script_tag}"""
 
     return html_document(title=page_title, css_path=css_path, body=body)
 
 
 def write_assets(site_dir: Path) -> None:
-    """共通CSSとGitHub Pages用の.nojekyllを書き出す。"""
+    """共通CSS・検索フィルタ用JS・GitHub Pages用の.nojekyllを書き出す。"""
     assets_dir = site_dir / "assets"
     assets_dir.mkdir(parents=True, exist_ok=True)
     (assets_dir / "style.css").write_text(CSS_CONTENT, encoding="utf-8")
+    (assets_dir / "search.js").write_text(SEARCH_JS_CONTENT, encoding="utf-8")
     (site_dir / ".nojekyll").write_text("", encoding="utf-8")
 
 
@@ -683,11 +1006,13 @@ def scan_existing_pages(site_dir: Path) -> list[dict]:
                         "source": meta.get("source", ""),
                         "published_date": meta.get("published_date", ""),
                         "target": meta.get("target", ""),
+                        "genre": meta.get("genre") or GENRE_UNKNOWN,
                         "grade": grade_dir.name,
                         "target_slug": target_dir.name,
                         "total_score": meta.get("total_score", ""),
                         "one_line_summary": meta.get("one_line_summary", ""),
                         "scores": meta.get("scores", {}),
+                        "body_text": meta.get("body_text", ""),
                         "filename": page_path.name,
                     }
                 )

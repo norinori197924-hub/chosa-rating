@@ -1,12 +1,14 @@
 """
 fetch_rss.pyが抽出したリリースを「消費者向け」か「企業向け」かに簡易分類するスクリプト。
+また、タイトル・本文のキーワードからジャンル(美容・健康、IT・テクノロジー等)も判定する。
 
 キーワードベースの判定を行う:
   - 「担当者」「BtoB」「企業の」等の企業向けキーワードを含む場合 → 企業向け
   - それ以外 → 消費者向け
+  - ジャンルはGENRE_KEYWORDSのいずれかに合致すれば該当ジャンル、なければ「その他」
 
 入力: output/releases/YYYY-MM-DD.json (fetch_rss.pyの出力)
-出力: output/classified/YYYY-MM-DD.json (targetフィールドを追加)
+出力: output/classified/YYYY-MM-DD.json (target・genreフィールドを追加)
 """
 
 from __future__ import annotations
@@ -42,6 +44,19 @@ B2B_KEYWORDS: list[str] = [
 TARGET_CONSUMER = "消費者向け"
 TARGET_BUSINESS = "企業向け"
 
+# ジャンル判定に使うキーワード。いずれかを含めば該当ジャンルとする(先勝ち)。
+GENRE_KEYWORDS: dict[str, list[str]] = {
+    "美容・健康": ["美容", "コスメ", "スキンケア", "ダイエット", "ヘルスケア", "健康", "フィットネス", "サプリ"],
+    "食品・飲料": ["食品", "飲料", "グルメ", "飲食", "レシピ", "スイーツ", "外食"],
+    "IT・テクノロジー": ["IT", "AI", "アプリ", "デジタル", "ソフトウェア", "インターネット", "テクノロジー", "DX", "SaaS"],
+    "金融・保険": ["金融", "保険", "投資", "資産運用", "クレジットカード", "住宅ローン", "証券", "家計"],
+    "旅行・レジャー": ["旅行", "観光", "レジャー", "ホテル", "宿泊"],
+    "住宅・不動産": ["住宅", "不動産", "マンション", "賃貸", "一戸建て", "リフォーム"],
+    "教育・キャリア": ["教育", "学習", "受験", "転職", "就職", "スクール", "資格", "キャリア"],
+    "ファッション": ["ファッション", "アパレル", "コーデ", "衣料"],
+}
+GENRE_OTHER = "その他"
+
 BASE_DIR = Path(__file__).resolve().parent
 RELEASES_DIR = BASE_DIR / "output" / "releases"
 CLASSIFIED_DIR = BASE_DIR / "output" / "classified"
@@ -55,14 +70,24 @@ def classify_target(title: str, body_text: str) -> str:
     return TARGET_CONSUMER
 
 
+def classify_genre(title: str, body_text: str) -> str:
+    """タイトルと本文からジャンルを判定する。複数のジャンルに該当しうる場合はGENRE_KEYWORDSの定義順で先勝ちとする。"""
+    combined = f"{title} {body_text}"
+    for genre, keywords in GENRE_KEYWORDS.items():
+        if any(keyword in combined for keyword in keywords):
+            return genre
+    return GENRE_OTHER
+
+
 def classify_releases(releases: list[dict]) -> list[dict]:
-    """リリースのリストに target フィールドを付与する。"""
+    """リリースのリストに target・genre フィールドを付与する。"""
     classified: list[dict] = []
     for release in releases:
         title = release.get("title", "")
         body_text = release.get("body_text", "")
         target = classify_target(title, body_text)
-        classified.append({**release, "target": target})
+        genre = classify_genre(title, body_text)
+        classified.append({**release, "target": target, "genre": genre})
     return classified
 
 

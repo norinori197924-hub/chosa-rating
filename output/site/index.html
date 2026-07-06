@@ -20,15 +20,58 @@
     <div class="stat"><div class="num">0</div><div class="label">grade A 件数</div></div>
 </div>
 
+<div class="grade-legend">
+    <div class="grade-legend-item"><span class="grade-legend-badge" data-grade="A">A</span><b>優良</b><span>開示水準が高く、利益相反や誘導的表現の懸念が少ない</span></div>
+    <div class="grade-legend-item"><span class="grade-legend-badge" data-grade="B">B</span><b>要注意</b><span>一部の開示情報が不足しており、独自の検証が難しい</span></div>
+    <div class="grade-legend-item"><span class="grade-legend-badge" data-grade="C">C</span><b>参考程度</b><span>開示水準が低い、または利益相反・誘導的表現の懸念がある</span></div>
+  </div>
+
+<div class="toolbar">
+  <div class="search-bar">
+    <input type="search" id="site-search" placeholder="キーワードで検索(タイトル・本文)" aria-label="キーワード検索">
+  </div>
+  <div class="filter-bar">
+    <select id="filter-genre" aria-label="ジャンルで絞り込み">
+      <option value="">ジャンル: すべて</option>
+      <option value="その他">その他</option>
+    </select>
+    <select id="filter-target" aria-label="対象で絞り込み">
+      <option value="">対象: すべて</option>
+      <option value="消費者向け">消費者向け</option>
+      <option value="企業向け">企業向け</option>
+    </select>
+    <select id="filter-grade" aria-label="評価で絞り込み">
+      <option value="">評価: すべて</option>
+      <option value="A">grade A</option>
+      <option value="B">grade B</option>
+      <option value="C">grade C</option>
+    </select>
+    <select id="filter-period" aria-label="期間で絞り込み">
+      <option value="">期間: すべて</option>
+      <option value="7">直近1週間</option>
+      <option value="30">直近1ヶ月</option>
+    </select>
+  </div>
+  <p id="result-count" class="result-count"></p>
+</div>
+<script type="application/json" id="site-data">[{"id": "B/business/f1e5648cfd24.html", "title": "日本財団18歳意識調査結果 第81回「地方創生（地域間比較調査）」", "body_text": "", "genre": "その他", "target": "企業向け", "grade": "B", "date": "2026-07-06T00:00:00"}, {"id": "B/consumer/0ce9d8b661cc.html", "title": "【将来的にAIに奪われると思う自分の仕事ランキング】男女500人アンケート調査", "body_text": "", "genre": "その他", "target": "消費者向け", "grade": "B", "date": "2026-07-06T00:00:00"}, {"id": "C/business/f5736261b0c9.html", "title": "天猫国際、日本ブランド向けビジネス商談会・セミナー7月9日開催", "body_text": "", "genre": "その他", "target": "企業向け", "grade": "C", "date": "2026-07-06T00:00:00"}, {"id": "C/consumer/a2f0f4d27c75.html", "title": "【AIペルソナ分析事例】CotoELで読み解く、コンビニ弁当に感じる不満と改善ニーズ ～AIペルソナによる利用者の不満・違和感分析～", "body_text": "", "genre": "その他", "target": "消費者向け", "grade": "C", "date": "2026-07-06T00:00:00"}, {"id": "C/consumer/f1223bb162fe.html", "title": "Bacillus Coagulans Market(バチルスコアグランス市場)：市場傾向、需要、成長分析、および2026－2035年の予測", "body_text": "", "genre": "その他", "target": "消費者向け", "grade": "C", "date": "2026-07-05T10:00:00+09:00"}, {"id": "C/consumer/0ce9d8b661cc.html", "title": "【将来的にAIに奪われると思う自分の仕事ランキング】男女500人アンケート調査", "body_text": "", "genre": "その他", "target": "消費者向け", "grade": "C", "date": "2026-07-05T00:00:00"}, {"id": "C/consumer/90d8a1ad914c.html", "title": "葬儀費用への不安は約8割、でも「具体的な金額を知っている」人はわずか2％--備えたい気持ちと実態のギャップが浮き彫りに", "body_text": "", "genre": "その他", "target": "消費者向け", "grade": "C", "date": "2026-07-05T00:00:00"}, {"id": "C/business/28e25626f8d3.html", "title": "Nanochip Market(ナノチップ市場)：市場傾向、需要、成長分析、および2026－2035年の予測", "body_text": "", "genre": "その他", "target": "企業向け", "grade": "C", "date": "2026-07-04T10:00:00+09:00"}, {"id": "B/business/44436f9e1dc8.html", "title": "【人事111名調査】約9割が期待する「資格取得支援」に潜む落とし穴とは？約4社に1社が運用断念する「制度の理想と運用の現実のギャップ」をデータで紐解く実態調査リポートを公開【人事・教育担当者向け】", "body_text": "", "genre": "その他", "target": "企業向け", "grade": "B", "date": "2026-07-04T00:00:00"}, {"id": "B/consumer/18c258ca27c6.html", "title": "管理職と一般職で評価・コミュニケーションの認識に最大15pt超のギャップ", "body_text": "", "genre": "その他", "target": "消費者向け", "grade": "B", "date": "2026-07-04T00:00:00"}, {"id": "C/consumer/70c4d3a64e62.html", "title": "【2026年版】金融資産1億円以上の富裕層250人に聞いた資産運用実態調査", "body_text": "", "genre": "その他", "target": "消費者向け", "grade": "C", "date": "2026-07-04T00:00:00"}]</script>
+
 <main>
   <h2 class="section-title">調査リリース信頼性評価</h2>
+  <p id="no-results" class="no-results">条件に一致するリリースが見つかりませんでした。</p>
 
-  <article class="release-card" data-grade="B">
+  <article class="release-card" data-grade="B" data-id="B/business/f1e5648cfd24.html">
     <div class="grade-pill"><span class="letter">B</span><span class="word">GRADE</span></div>
     <div class="release-body">
       <h3><a href="B/business/f1e5648cfd24.html">日本財団18歳意識調査結果 第81回「地方創生（地域間比較調査）」</a></h3>
-      <div class="release-meta">PRTIMES<span class="sep">/</span>2026-07-06T00:00:00<span class="sep">/</span>企業向け</div>
-      <div class="axis-row"><span>透明性 <b>18</b>/20</span> <span>手法開示 <b>14</b>/20</span> <span>サンプル <b>12</b>/20</span> <span>利益相反 <b>16</b>/20</span> <span>中立性 <b>12</b>/20</span></div>
+      <div class="release-meta">PRTIMES<span class="sep">/</span>2026-07-06T00:00:00<span class="sep">/</span>企業向け<span class="sep">/</span><span class="genre-tag">その他</span></div>
+      <div class="axis-bars axis-bars-compact">
+    <div class="axis-bar-row"><span class="axis-bar-label">🔍 透明性</span><span class="axis-bar-track"><span class="axis-bar-fill" style="width:90%"></span></span><span class="axis-bar-value">18</span></div>
+    <div class="axis-bar-row"><span class="axis-bar-label">📋 手法開示</span><span class="axis-bar-track"><span class="axis-bar-fill" style="width:70%"></span></span><span class="axis-bar-value">14</span></div>
+    <div class="axis-bar-row"><span class="axis-bar-label">👥 サンプル</span><span class="axis-bar-track"><span class="axis-bar-fill" style="width:60%"></span></span><span class="axis-bar-value">12</span></div>
+    <div class="axis-bar-row"><span class="axis-bar-label">⚖️ 利益相反</span><span class="axis-bar-track"><span class="axis-bar-fill" style="width:80%"></span></span><span class="axis-bar-value">16</span></div>
+    <div class="axis-bar-row"><span class="axis-bar-label">🎯 中立性</span><span class="axis-bar-track"><span class="axis-bar-fill" style="width:60%"></span></span><span class="axis-bar-value">12</span></div>
+    </div>
       <p class="summary-line">「調査主体は明記だがn数未公開、質問文非開示が課題。」</p>
     </div>
     <div class="score-block">
@@ -36,12 +79,18 @@
       <div class="of100">/ 100点</div>
     </div>
   </article>
-  <article class="release-card" data-grade="B">
+  <article class="release-card" data-grade="B" data-id="B/consumer/0ce9d8b661cc.html">
     <div class="grade-pill"><span class="letter">B</span><span class="word">GRADE</span></div>
     <div class="release-body">
       <h3><a href="B/consumer/0ce9d8b661cc.html">【将来的にAIに奪われると思う自分の仕事ランキング】男女500人アンケート調査</a></h3>
-      <div class="release-meta">PRTIMES<span class="sep">/</span>2026-07-06T00:00:00<span class="sep">/</span>消費者向け</div>
-      <div class="axis-row"><span>透明性 <b>8</b>/20</span> <span>手法開示 <b>10</b>/20</span> <span>サンプル <b>12</b>/20</span> <span>利益相反 <b>14</b>/20</span> <span>中立性 <b>8</b>/20</span></div>
+      <div class="release-meta">PRTIMES<span class="sep">/</span>2026-07-06T00:00:00<span class="sep">/</span>消費者向け<span class="sep">/</span><span class="genre-tag">その他</span></div>
+      <div class="axis-bars axis-bars-compact">
+    <div class="axis-bar-row"><span class="axis-bar-label">🔍 透明性</span><span class="axis-bar-track"><span class="axis-bar-fill" style="width:40%"></span></span><span class="axis-bar-value">8</span></div>
+    <div class="axis-bar-row"><span class="axis-bar-label">📋 手法開示</span><span class="axis-bar-track"><span class="axis-bar-fill" style="width:50%"></span></span><span class="axis-bar-value">10</span></div>
+    <div class="axis-bar-row"><span class="axis-bar-label">👥 サンプル</span><span class="axis-bar-track"><span class="axis-bar-fill" style="width:60%"></span></span><span class="axis-bar-value">12</span></div>
+    <div class="axis-bar-row"><span class="axis-bar-label">⚖️ 利益相反</span><span class="axis-bar-track"><span class="axis-bar-fill" style="width:70%"></span></span><span class="axis-bar-value">14</span></div>
+    <div class="axis-bar-row"><span class="axis-bar-label">🎯 中立性</span><span class="axis-bar-track"><span class="axis-bar-fill" style="width:40%"></span></span><span class="axis-bar-value">8</span></div>
+    </div>
       <p class="summary-line">「自社調査で方法詳細・属性別n数の開示不足。」</p>
     </div>
     <div class="score-block">
@@ -49,12 +98,18 @@
       <div class="of100">/ 100点</div>
     </div>
   </article>
-  <article class="release-card" data-grade="C">
+  <article class="release-card" data-grade="C" data-id="C/business/f5736261b0c9.html">
     <div class="grade-pill"><span class="letter">C</span><span class="word">GRADE</span></div>
     <div class="release-body">
       <h3><a href="C/business/f5736261b0c9.html">天猫国際、日本ブランド向けビジネス商談会・セミナー7月9日開催</a></h3>
-      <div class="release-meta">PRTIMES<span class="sep">/</span>2026-07-06T00:00:00<span class="sep">/</span>企業向け</div>
-      <div class="axis-row"><span>透明性 <b>8</b>/20</span> <span>手法開示 <b>5</b>/20</span> <span>サンプル <b>2</b>/20</span> <span>利益相反 <b>5</b>/20</span> <span>中立性 <b>15</b>/20</span></div>
+      <div class="release-meta">PRTIMES<span class="sep">/</span>2026-07-06T00:00:00<span class="sep">/</span>企業向け<span class="sep">/</span><span class="genre-tag">その他</span></div>
+      <div class="axis-bars axis-bars-compact">
+    <div class="axis-bar-row"><span class="axis-bar-label">🔍 透明性</span><span class="axis-bar-track"><span class="axis-bar-fill" style="width:40%"></span></span><span class="axis-bar-value">8</span></div>
+    <div class="axis-bar-row"><span class="axis-bar-label">📋 手法開示</span><span class="axis-bar-track"><span class="axis-bar-fill" style="width:25%"></span></span><span class="axis-bar-value">5</span></div>
+    <div class="axis-bar-row"><span class="axis-bar-label">👥 サンプル</span><span class="axis-bar-track"><span class="axis-bar-fill" style="width:10%"></span></span><span class="axis-bar-value">2</span></div>
+    <div class="axis-bar-row"><span class="axis-bar-label">⚖️ 利益相反</span><span class="axis-bar-track"><span class="axis-bar-fill" style="width:25%"></span></span><span class="axis-bar-value">5</span></div>
+    <div class="axis-bar-row"><span class="axis-bar-label">🎯 中立性</span><span class="axis-bar-track"><span class="axis-bar-fill" style="width:75%"></span></span><span class="axis-bar-value">15</span></div>
+    </div>
       <p class="summary-line">「セミナー告知で調査根拠が非公開、自社販促が主目的である。」</p>
     </div>
     <div class="score-block">
@@ -62,12 +117,18 @@
       <div class="of100">/ 100点</div>
     </div>
   </article>
-  <article class="release-card" data-grade="C">
+  <article class="release-card" data-grade="C" data-id="C/consumer/a2f0f4d27c75.html">
     <div class="grade-pill"><span class="letter">C</span><span class="word">GRADE</span></div>
     <div class="release-body">
       <h3><a href="C/consumer/a2f0f4d27c75.html">【AIペルソナ分析事例】CotoELで読み解く、コンビニ弁当に感じる不満と改善ニーズ ～AIペルソナによる利用者の不満・違和感分析～</a></h3>
-      <div class="release-meta">PRTIMES<span class="sep">/</span>2026-07-06T00:00:00<span class="sep">/</span>消費者向け</div>
-      <div class="axis-row"><span>透明性 <b>8</b>/20</span> <span>手法開示 <b>10</b>/20</span> <span>サンプル <b>5</b>/20</span> <span>利益相反 <b>10</b>/20</span> <span>中立性 <b>9</b>/20</span></div>
+      <div class="release-meta">PRTIMES<span class="sep">/</span>2026-07-06T00:00:00<span class="sep">/</span>消費者向け<span class="sep">/</span><span class="genre-tag">その他</span></div>
+      <div class="axis-bars axis-bars-compact">
+    <div class="axis-bar-row"><span class="axis-bar-label">🔍 透明性</span><span class="axis-bar-track"><span class="axis-bar-fill" style="width:40%"></span></span><span class="axis-bar-value">8</span></div>
+    <div class="axis-bar-row"><span class="axis-bar-label">📋 手法開示</span><span class="axis-bar-track"><span class="axis-bar-fill" style="width:50%"></span></span><span class="axis-bar-value">10</span></div>
+    <div class="axis-bar-row"><span class="axis-bar-label">👥 サンプル</span><span class="axis-bar-track"><span class="axis-bar-fill" style="width:25%"></span></span><span class="axis-bar-value">5</span></div>
+    <div class="axis-bar-row"><span class="axis-bar-label">⚖️ 利益相反</span><span class="axis-bar-track"><span class="axis-bar-fill" style="width:50%"></span></span><span class="axis-bar-value">10</span></div>
+    <div class="axis-bar-row"><span class="axis-bar-label">🎯 中立性</span><span class="axis-bar-track"><span class="axis-bar-fill" style="width:45%"></span></span><span class="axis-bar-value">9</span></div>
+    </div>
       <p class="summary-line">「調査主体・n数未開示、AIツール活用事例の販促性が強い調査リリース」</p>
     </div>
     <div class="score-block">
@@ -75,12 +136,18 @@
       <div class="of100">/ 100点</div>
     </div>
   </article>
-  <article class="release-card" data-grade="C">
+  <article class="release-card" data-grade="C" data-id="C/consumer/f1223bb162fe.html">
     <div class="grade-pill"><span class="letter">C</span><span class="word">GRADE</span></div>
     <div class="release-body">
       <h3><a href="C/consumer/f1223bb162fe.html">Bacillus Coagulans Market(バチルスコアグランス市場)：市場傾向、需要、成長分析、および2026－2035年の予測</a></h3>
-      <div class="release-meta">@Press<span class="sep">/</span>2026-07-05T10:00:00+09:00<span class="sep">/</span>消費者向け</div>
-      <div class="axis-row"><span>透明性 <b>8</b>/20</span> <span>手法開示 <b>5</b>/20</span> <span>サンプル <b>0</b>/20</span> <span>利益相反 <b>5</b>/20</span> <span>中立性 <b>10</b>/20</span></div>
+      <div class="release-meta">@Press<span class="sep">/</span>2026-07-05T10:00:00+09:00<span class="sep">/</span>消費者向け<span class="sep">/</span><span class="genre-tag">その他</span></div>
+      <div class="axis-bars axis-bars-compact">
+    <div class="axis-bar-row"><span class="axis-bar-label">🔍 透明性</span><span class="axis-bar-track"><span class="axis-bar-fill" style="width:40%"></span></span><span class="axis-bar-value">8</span></div>
+    <div class="axis-bar-row"><span class="axis-bar-label">📋 手法開示</span><span class="axis-bar-track"><span class="axis-bar-fill" style="width:25%"></span></span><span class="axis-bar-value">5</span></div>
+    <div class="axis-bar-row"><span class="axis-bar-label">👥 サンプル</span><span class="axis-bar-track"><span class="axis-bar-fill" style="width:0%"></span></span><span class="axis-bar-value">0</span></div>
+    <div class="axis-bar-row"><span class="axis-bar-label">⚖️ 利益相反</span><span class="axis-bar-track"><span class="axis-bar-fill" style="width:25%"></span></span><span class="axis-bar-value">5</span></div>
+    <div class="axis-bar-row"><span class="axis-bar-label">🎯 中立性</span><span class="axis-bar-track"><span class="axis-bar-fill" style="width:50%"></span></span><span class="axis-bar-value">10</span></div>
+    </div>
       <p class="summary-line">「調査方法・サンプル・対象者などの基本情報がほぼ非開示の市場予測リポート。」</p>
     </div>
     <div class="score-block">
@@ -88,12 +155,18 @@
       <div class="of100">/ 100点</div>
     </div>
   </article>
-  <article class="release-card" data-grade="C">
+  <article class="release-card" data-grade="C" data-id="C/consumer/0ce9d8b661cc.html">
     <div class="grade-pill"><span class="letter">C</span><span class="word">GRADE</span></div>
     <div class="release-body">
       <h3><a href="C/consumer/0ce9d8b661cc.html">【将来的にAIに奪われると思う自分の仕事ランキング】男女500人アンケート調査</a></h3>
-      <div class="release-meta">PRTIMES<span class="sep">/</span>2026-07-05T00:00:00<span class="sep">/</span>消費者向け</div>
-      <div class="axis-row"><span>透明性 <b>10</b>/20</span> <span>手法開示 <b>8</b>/20</span> <span>サンプル <b>10</b>/20</span> <span>利益相反 <b>12</b>/20</span> <span>中立性 <b>12</b>/20</span></div>
+      <div class="release-meta">PRTIMES<span class="sep">/</span>2026-07-05T00:00:00<span class="sep">/</span>消費者向け<span class="sep">/</span><span class="genre-tag">その他</span></div>
+      <div class="axis-bars axis-bars-compact">
+    <div class="axis-bar-row"><span class="axis-bar-label">🔍 透明性</span><span class="axis-bar-track"><span class="axis-bar-fill" style="width:50%"></span></span><span class="axis-bar-value">10</span></div>
+    <div class="axis-bar-row"><span class="axis-bar-label">📋 手法開示</span><span class="axis-bar-track"><span class="axis-bar-fill" style="width:40%"></span></span><span class="axis-bar-value">8</span></div>
+    <div class="axis-bar-row"><span class="axis-bar-label">👥 サンプル</span><span class="axis-bar-track"><span class="axis-bar-fill" style="width:50%"></span></span><span class="axis-bar-value">10</span></div>
+    <div class="axis-bar-row"><span class="axis-bar-label">⚖️ 利益相反</span><span class="axis-bar-track"><span class="axis-bar-fill" style="width:60%"></span></span><span class="axis-bar-value">12</span></div>
+    <div class="axis-bar-row"><span class="axis-bar-label">🎯 中立性</span><span class="axis-bar-track"><span class="axis-bar-fill" style="width:60%"></span></span><span class="axis-bar-value">12</span></div>
+    </div>
       <p class="summary-line">「自社調査で調査方法等の基本情報開示が不十分。」</p>
     </div>
     <div class="score-block">
@@ -101,12 +174,18 @@
       <div class="of100">/ 100点</div>
     </div>
   </article>
-  <article class="release-card" data-grade="C">
+  <article class="release-card" data-grade="C" data-id="C/consumer/90d8a1ad914c.html">
     <div class="grade-pill"><span class="letter">C</span><span class="word">GRADE</span></div>
     <div class="release-body">
       <h3><a href="C/consumer/90d8a1ad914c.html">葬儀費用への不安は約8割、でも「具体的な金額を知っている」人はわずか2％--備えたい気持ちと実態のギャップが浮き彫りに</a></h3>
-      <div class="release-meta">PRTIMES<span class="sep">/</span>2026-07-05T00:00:00<span class="sep">/</span>消費者向け</div>
-      <div class="axis-row"><span>透明性 <b>8</b>/20</span> <span>手法開示 <b>6</b>/20</span> <span>サンプル <b>5</b>/20</span> <span>利益相反 <b>10</b>/20</span> <span>中立性 <b>13</b>/20</span></div>
+      <div class="release-meta">PRTIMES<span class="sep">/</span>2026-07-05T00:00:00<span class="sep">/</span>消費者向け<span class="sep">/</span><span class="genre-tag">その他</span></div>
+      <div class="axis-bars axis-bars-compact">
+    <div class="axis-bar-row"><span class="axis-bar-label">🔍 透明性</span><span class="axis-bar-track"><span class="axis-bar-fill" style="width:40%"></span></span><span class="axis-bar-value">8</span></div>
+    <div class="axis-bar-row"><span class="axis-bar-label">📋 手法開示</span><span class="axis-bar-track"><span class="axis-bar-fill" style="width:30%"></span></span><span class="axis-bar-value">6</span></div>
+    <div class="axis-bar-row"><span class="axis-bar-label">👥 サンプル</span><span class="axis-bar-track"><span class="axis-bar-fill" style="width:25%"></span></span><span class="axis-bar-value">5</span></div>
+    <div class="axis-bar-row"><span class="axis-bar-label">⚖️ 利益相反</span><span class="axis-bar-track"><span class="axis-bar-fill" style="width:50%"></span></span><span class="axis-bar-value">10</span></div>
+    <div class="axis-bar-row"><span class="axis-bar-label">🎯 中立性</span><span class="axis-bar-track"><span class="axis-bar-fill" style="width:65%"></span></span><span class="axis-bar-value">13</span></div>
+    </div>
       <p class="summary-line">「調査主体・手法・n数の重要情報が不明確で検証性に乏しい。」</p>
     </div>
     <div class="score-block">
@@ -114,12 +193,18 @@
       <div class="of100">/ 100点</div>
     </div>
   </article>
-  <article class="release-card" data-grade="C">
+  <article class="release-card" data-grade="C" data-id="C/business/28e25626f8d3.html">
     <div class="grade-pill"><span class="letter">C</span><span class="word">GRADE</span></div>
     <div class="release-body">
       <h3><a href="C/business/28e25626f8d3.html">Nanochip Market(ナノチップ市場)：市場傾向、需要、成長分析、および2026－2035年の予測</a></h3>
-      <div class="release-meta">@Press<span class="sep">/</span>2026-07-04T10:00:00+09:00<span class="sep">/</span>企業向け</div>
-      <div class="axis-row"><span>透明性 <b>10</b>/20</span> <span>手法開示 <b>5</b>/20</span> <span>サンプル <b>8</b>/20</span> <span>利益相反 <b>5</b>/20</span> <span>中立性 <b>0</b>/20</span></div>
+      <div class="release-meta">@Press<span class="sep">/</span>2026-07-04T10:00:00+09:00<span class="sep">/</span>企業向け<span class="sep">/</span><span class="genre-tag">その他</span></div>
+      <div class="axis-bars axis-bars-compact">
+    <div class="axis-bar-row"><span class="axis-bar-label">🔍 透明性</span><span class="axis-bar-track"><span class="axis-bar-fill" style="width:50%"></span></span><span class="axis-bar-value">10</span></div>
+    <div class="axis-bar-row"><span class="axis-bar-label">📋 手法開示</span><span class="axis-bar-track"><span class="axis-bar-fill" style="width:25%"></span></span><span class="axis-bar-value">5</span></div>
+    <div class="axis-bar-row"><span class="axis-bar-label">👥 サンプル</span><span class="axis-bar-track"><span class="axis-bar-fill" style="width:40%"></span></span><span class="axis-bar-value">8</span></div>
+    <div class="axis-bar-row"><span class="axis-bar-label">⚖️ 利益相反</span><span class="axis-bar-track"><span class="axis-bar-fill" style="width:25%"></span></span><span class="axis-bar-value">5</span></div>
+    <div class="axis-bar-row"><span class="axis-bar-label">🎯 中立性</span><span class="axis-bar-track"><span class="axis-bar-fill" style="width:0%"></span></span><span class="axis-bar-value">0</span></div>
+    </div>
       <p class="summary-line">「調査手法・質問文非開示で検証不可能、レポート販売目的が主である。」</p>
     </div>
     <div class="score-block">
@@ -127,12 +212,18 @@
       <div class="of100">/ 100点</div>
     </div>
   </article>
-  <article class="release-card" data-grade="B">
+  <article class="release-card" data-grade="B" data-id="B/business/44436f9e1dc8.html">
     <div class="grade-pill"><span class="letter">B</span><span class="word">GRADE</span></div>
     <div class="release-body">
       <h3><a href="B/business/44436f9e1dc8.html">【人事111名調査】約9割が期待する「資格取得支援」に潜む落とし穴とは？約4社に1社が運用断念する「制度の理想と運用の現実のギャップ」をデータで紐解く実態調査リポートを公開【人事・教育担当者向け】</a></h3>
-      <div class="release-meta">PRTIMES<span class="sep">/</span>2026-07-04T00:00:00<span class="sep">/</span>企業向け</div>
-      <div class="axis-row"><span>透明性 <b>12</b>/20</span> <span>手法開示 <b>10</b>/20</span> <span>サンプル <b>8</b>/20</span> <span>利益相反 <b>10</b>/20</span> <span>中立性 <b>18</b>/20</span></div>
+      <div class="release-meta">PRTIMES<span class="sep">/</span>2026-07-04T00:00:00<span class="sep">/</span>企業向け<span class="sep">/</span><span class="genre-tag">その他</span></div>
+      <div class="axis-bars axis-bars-compact">
+    <div class="axis-bar-row"><span class="axis-bar-label">🔍 透明性</span><span class="axis-bar-track"><span class="axis-bar-fill" style="width:60%"></span></span><span class="axis-bar-value">12</span></div>
+    <div class="axis-bar-row"><span class="axis-bar-label">📋 手法開示</span><span class="axis-bar-track"><span class="axis-bar-fill" style="width:50%"></span></span><span class="axis-bar-value">10</span></div>
+    <div class="axis-bar-row"><span class="axis-bar-label">👥 サンプル</span><span class="axis-bar-track"><span class="axis-bar-fill" style="width:40%"></span></span><span class="axis-bar-value">8</span></div>
+    <div class="axis-bar-row"><span class="axis-bar-label">⚖️ 利益相反</span><span class="axis-bar-track"><span class="axis-bar-fill" style="width:50%"></span></span><span class="axis-bar-value">10</span></div>
+    <div class="axis-bar-row"><span class="axis-bar-label">🎯 中立性</span><span class="axis-bar-track"><span class="axis-bar-fill" style="width:90%"></span></span><span class="axis-bar-value">18</span></div>
+    </div>
       <p class="summary-line">「自社調査、n=111、第三者検証なし、方法詳細不明。」</p>
     </div>
     <div class="score-block">
@@ -140,12 +231,18 @@
       <div class="of100">/ 100点</div>
     </div>
   </article>
-  <article class="release-card" data-grade="B">
+  <article class="release-card" data-grade="B" data-id="B/consumer/18c258ca27c6.html">
     <div class="grade-pill"><span class="letter">B</span><span class="word">GRADE</span></div>
     <div class="release-body">
       <h3><a href="B/consumer/18c258ca27c6.html">管理職と一般職で評価・コミュニケーションの認識に最大15pt超のギャップ</a></h3>
-      <div class="release-meta">PRTIMES<span class="sep">/</span>2026-07-04T00:00:00<span class="sep">/</span>消費者向け</div>
-      <div class="axis-row"><span>透明性 <b>12</b>/20</span> <span>手法開示 <b>10</b>/20</span> <span>サンプル <b>14</b>/20</span> <span>利益相反 <b>10</b>/20</span> <span>中立性 <b>12</b>/20</span></div>
+      <div class="release-meta">PRTIMES<span class="sep">/</span>2026-07-04T00:00:00<span class="sep">/</span>消費者向け<span class="sep">/</span><span class="genre-tag">その他</span></div>
+      <div class="axis-bars axis-bars-compact">
+    <div class="axis-bar-row"><span class="axis-bar-label">🔍 透明性</span><span class="axis-bar-track"><span class="axis-bar-fill" style="width:60%"></span></span><span class="axis-bar-value">12</span></div>
+    <div class="axis-bar-row"><span class="axis-bar-label">📋 手法開示</span><span class="axis-bar-track"><span class="axis-bar-fill" style="width:50%"></span></span><span class="axis-bar-value">10</span></div>
+    <div class="axis-bar-row"><span class="axis-bar-label">👥 サンプル</span><span class="axis-bar-track"><span class="axis-bar-fill" style="width:70%"></span></span><span class="axis-bar-value">14</span></div>
+    <div class="axis-bar-row"><span class="axis-bar-label">⚖️ 利益相反</span><span class="axis-bar-track"><span class="axis-bar-fill" style="width:50%"></span></span><span class="axis-bar-value">10</span></div>
+    <div class="axis-bar-row"><span class="axis-bar-label">🎯 中立性</span><span class="axis-bar-track"><span class="axis-bar-fill" style="width:60%"></span></span><span class="axis-bar-value">12</span></div>
+    </div>
       <p class="summary-line">「自社調査でn=1,000だが、実施期間・質問文等の詳細開示が不十分。」</p>
     </div>
     <div class="score-block">
@@ -153,12 +250,18 @@
       <div class="of100">/ 100点</div>
     </div>
   </article>
-  <article class="release-card" data-grade="C">
+  <article class="release-card" data-grade="C" data-id="C/consumer/70c4d3a64e62.html">
     <div class="grade-pill"><span class="letter">C</span><span class="word">GRADE</span></div>
     <div class="release-body">
       <h3><a href="C/consumer/70c4d3a64e62.html">【2026年版】金融資産1億円以上の富裕層250人に聞いた資産運用実態調査</a></h3>
-      <div class="release-meta">PRTIMES<span class="sep">/</span>2026-07-04T00:00:00<span class="sep">/</span>消費者向け</div>
-      <div class="axis-row"><span>透明性 <b>10</b>/20</span> <span>手法開示 <b>8</b>/20</span> <span>サンプル <b>5</b>/20</span> <span>利益相反 <b>12</b>/20</span> <span>中立性 <b>10</b>/20</span></div>
+      <div class="release-meta">PRTIMES<span class="sep">/</span>2026-07-04T00:00:00<span class="sep">/</span>消費者向け<span class="sep">/</span><span class="genre-tag">その他</span></div>
+      <div class="axis-bars axis-bars-compact">
+    <div class="axis-bar-row"><span class="axis-bar-label">🔍 透明性</span><span class="axis-bar-track"><span class="axis-bar-fill" style="width:50%"></span></span><span class="axis-bar-value">10</span></div>
+    <div class="axis-bar-row"><span class="axis-bar-label">📋 手法開示</span><span class="axis-bar-track"><span class="axis-bar-fill" style="width:40%"></span></span><span class="axis-bar-value">8</span></div>
+    <div class="axis-bar-row"><span class="axis-bar-label">👥 サンプル</span><span class="axis-bar-track"><span class="axis-bar-fill" style="width:25%"></span></span><span class="axis-bar-value">5</span></div>
+    <div class="axis-bar-row"><span class="axis-bar-label">⚖️ 利益相反</span><span class="axis-bar-track"><span class="axis-bar-fill" style="width:60%"></span></span><span class="axis-bar-value">12</span></div>
+    <div class="axis-bar-row"><span class="axis-bar-label">🎯 中立性</span><span class="axis-bar-track"><span class="axis-bar-fill" style="width:50%"></span></span><span class="axis-bar-value">10</span></div>
+    </div>
       <p class="summary-line">「調査手法と属性別n数の開示不足、自社調査の可能性が懸念される。」</p>
     </div>
     <div class="score-block">
@@ -176,5 +279,6 @@
 <footer>
   調査リリースの信頼性を客観的な開示情報に基づき評価しています。
 </footer>
+<script src="assets/search.js" defer></script>
 </body>
 </html>
