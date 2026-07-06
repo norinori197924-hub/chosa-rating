@@ -435,6 +435,71 @@ footer {
 }
 .axis-bars-full .axis-bar-track { height: 7px; }
 
+/* パンくずリスト */
+.breadcrumbs {
+  max-width: 880px;
+  margin: 14px auto 0;
+  padding: 0 24px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.breadcrumbs ol {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0;
+  padding: 0;
+}
+.breadcrumbs li:not(:last-child)::after {
+  content: "\203a";
+  margin: 0 6px;
+  color: var(--muted);
+}
+.breadcrumbs a { color: var(--navy-700); text-decoration: none; }
+@media (prefers-color-scheme: dark) { .breadcrumbs a { color: var(--gold); } }
+:root[data-theme="dark"] .breadcrumbs a { color: var(--gold); }
+.breadcrumbs a:hover { text-decoration: underline; }
+.breadcrumbs li[aria-current="page"] { color: var(--ink); }
+
+/* 記事詳細ページの関連記事セクション */
+.related-list {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+}
+.related-list li {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--hairline);
+  font-size: 0.88rem;
+}
+.related-list li:last-child { border-bottom: none; }
+.related-list a { color: var(--ink); text-decoration: none; }
+.related-list a:hover { text-decoration: underline; }
+.related-meta { display: block; font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+
+/* 一覧ページのジャンル別セクション */
+.genre-nav {
+  max-width: 880px;
+  margin: 14px auto 0;
+  padding: 0 24px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.genre-nav a {
+  font-size: 0.76rem;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--hairline);
+  color: var(--muted);
+  text-decoration: none;
+}
+.genre-nav a:hover { color: var(--ink); }
+.genre-nav-count { margin-left: 2px; }
+.genre-section { margin-top: 8px; }
+.genre-section .section-title { scroll-margin-top: 16px; }
+.genre-count { font-size: 0.75rem; color: var(--muted); margin-left: 6px; }
+
 @media (max-width: 560px) {
   .release-card { grid-template-columns: 64px 1fr; }
   .score-block { grid-column: 1 / -1; text-align: left; display: flex; align-items: baseline; gap: 8px; }

@@ -532,6 +532,71 @@ footer {
 }
 .axis-bars-full .axis-bar-track { height: 7px; }
 
+/* パンくずリスト */
+.breadcrumbs {
+  max-width: 880px;
+  margin: 14px auto 0;
+  padding: 0 24px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.breadcrumbs ol {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0;
+  padding: 0;
+}
+.breadcrumbs li:not(:last-child)::after {
+  content: "\\203a";
+  margin: 0 6px;
+  color: var(--muted);
+}
+.breadcrumbs a { color: var(--navy-700); text-decoration: none; }
+@media (prefers-color-scheme: dark) { .breadcrumbs a { color: var(--gold); } }
+:root[data-theme="dark"] .breadcrumbs a { color: var(--gold); }
+.breadcrumbs a:hover { text-decoration: underline; }
+.breadcrumbs li[aria-current="page"] { color: var(--ink); }
+
+/* 記事詳細ページの関連記事セクション */
+.related-list {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+}
+.related-list li {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--hairline);
+  font-size: 0.88rem;
+}
+.related-list li:last-child { border-bottom: none; }
+.related-list a { color: var(--ink); text-decoration: none; }
+.related-list a:hover { text-decoration: underline; }
+.related-meta { display: block; font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+
+/* 一覧ページのジャンル別セクション */
+.genre-nav {
+  max-width: 880px;
+  margin: 14px auto 0;
+  padding: 0 24px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.genre-nav a {
+  font-size: 0.76rem;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--hairline);
+  color: var(--muted);
+  text-decoration: none;
+}
+.genre-nav a:hover { color: var(--ink); }
+.genre-nav-count { margin-left: 2px; }
+.genre-section { margin-top: 8px; }
+.genre-section .section-title { scroll-margin-top: 16px; }
+.genre-count { font-size: 0.75rem; color: var(--muted); margin-left: 6px; }
+
 @media (max-width: 560px) {
   .release-card { grid-template-columns: 64px 1fr; }
   .score-block { grid-column: 1 / -1; text-align: left; display: flex; align-items: baseline; gap: 8px; }
@@ -691,6 +756,95 @@ def render_grade_legend() -> str:
   </div>"""
 
 
+def genre_anchor(genre: str) -> str:
+    """ジャンル名からアンカーID(CSS/URL安全な文字列)を生成する。"""
+    return "genre-" + hashlib.md5((genre or GENRE_UNKNOWN).encode("utf-8")).hexdigest()[:8]
+
+
+def compute_display_title(*, title: str, grade: str, total_score, catchy_title: str | None) -> str:
+    """サイト表示用タイトルを決定する。
+
+    analyzer.pyが生成したcatchy_titleがあればそれを使う。
+    旧データ等でcatchy_titleが無い場合は「【grade評価・点数】元見出し」の形式に整形するフォールバックを適用する。
+    """
+    if catchy_title:
+        return catchy_title
+    if grade in VALID_GRADES and isinstance(total_score, (int, float)):
+        return f"【{grade}評価・{total_score}点】{title}"
+    return title
+
+
+def render_breadcrumbs(*, home_path: str, genre: str, title: str) -> str:
+    """パンくずリスト(トップ > ジャンル > 記事タイトル)をレンダリングする。"""
+    genre_href = f"{home_path}#{genre_anchor(genre)}"
+    return f"""<nav class="breadcrumbs" aria-label="パンくずリスト">
+  <ol>
+    <li><a href="{h(home_path)}">トップ</a></li>
+    <li><a href="{h(genre_href)}">{h(genre)}</a></li>
+    <li aria-current="page">{h(title)}</li>
+  </ol>
+</nav>"""
+
+
+def render_related_group(label: str, items: list[dict]) -> str:
+    """関連記事1グループ分(見出し+リンクリスト)をレンダリングする。itemsが空なら何も出さない。"""
+    if not items:
+        return ""
+    lis = "\n".join(
+        f'    <li><a href="../../{h(it["relative_path"])}">{h(it["title"])}</a>'
+        f'<span class="related-meta">{h(it.get("published_date", ""))}</span></li>'
+        for it in items
+    )
+    return f"""  <h2 class="section-title">{h(label)}</h2>
+  <ul class="related-list">
+{lis}
+  </ul>"""
+
+
+def render_related_sections(related: dict) -> str:
+    """記事詳細ページの回遊導線(同grade・同ジャンル・新着)をまとめてレンダリングする。"""
+    parts = [
+        render_related_group("同じ評価(grade)の他記事", related.get("grade", [])),
+        render_related_group("同じジャンルの他記事", related.get("genre", [])),
+        render_related_group("新着記事", related.get("latest", [])),
+    ]
+    return "\n\n".join(part for part in parts if part)
+
+
+def render_genre_sections(entries: list[dict]) -> str:
+    """全体一覧ページ用に、entriesをジャンル別セクションへ分けてレンダリングする(公開日降順を維持)。"""
+    if not entries:
+        return '  <p class="empty-note">対象のリリースはまだありません。</p>'
+
+    groups: dict[str, list[dict]] = {}
+    order: list[str] = []
+    for entry in entries:
+        genre = entry.get("genre") or GENRE_UNKNOWN
+        if genre not in groups:
+            groups[genre] = []
+            order.append(genre)
+        groups[genre].append(entry)
+
+    nav_items = "\n".join(
+        f'    <a href="#{genre_anchor(g)}">{h(g)}<span class="genre-nav-count">({len(groups[g])})</span></a>'
+        for g in order
+    )
+    nav_html = f'<nav class="genre-nav" aria-label="ジャンルから探す">\n{nav_items}\n  </nav>'
+
+    sections = []
+    for g in order:
+        cards = "\n".join(render_index_card(entry) for entry in groups[g])
+        sections.append(
+            f'  <section class="genre-section">\n'
+            f'    <h2 class="section-title" id="{genre_anchor(g)}">{h(g)}'
+            f'<span class="genre-count">({len(groups[g])}件)</span></h2>\n'
+            f"{cards}\n"
+            f"  </section>"
+        )
+
+    return nav_html + "\n\n" + "\n\n".join(sections)
+
+
 def html_document(*, title: str, css_path: str, body: str) -> str:
     """HTML文書全体をレンダリングする。"""
     return f"""<!DOCTYPE html>
@@ -708,42 +862,49 @@ def html_document(*, title: str, css_path: str, body: str) -> str:
 """
 
 
-def render_release_html(release: dict, *, home_path: str, css_path: str) -> str:
+def build_meta_payload(entry: dict) -> dict:
+    """entryから、記事ページの<script id="release-meta">に埋め込むペイロードを組み立てる。"""
+    return {
+        "raw_title": entry.get("raw_title", entry.get("title", "")),
+        "catchy_title": entry.get("catchy_title"),
+        "title": entry.get("title", ""),
+        "source": entry.get("source", ""),
+        "url": entry.get("url", ""),
+        "published_date": entry.get("published_date", ""),
+        "target": entry.get("target", ""),
+        "genre": entry.get("genre") or GENRE_UNKNOWN,
+        "grade": entry.get("grade", GRADE_UNKNOWN),
+        "total_score": entry.get("total_score", ""),
+        "one_line_summary": entry.get("one_line_summary", ""),
+        "reasoning": entry.get("reasoning", ""),
+        "flags": entry.get("flags", []),
+        "scores": entry.get("scores", {}),
+        "body_text": (entry.get("body_text") or "")[:400],
+    }
+
+
+def render_release_html(entry: dict, *, home_path: str, css_path: str, related: dict) -> str:
     """1件のリリースを記事詳細ページとしてレンダリングする。"""
-    score = release.get("score", {})
-    scores = score.get("scores", {})
-    flags = score.get("flags", [])
+    scores = entry.get("scores", {})
+    flags = entry.get("flags", [])
 
-    title = release.get("title", "")
-    source = release.get("source", "")
-    url = release.get("url", "")
-    published_date = release.get("published_date", "")
-    target = release.get("target", "")
-    genre = release.get("genre") or GENRE_UNKNOWN
-    grade = grade_dir_name(score.get("grade"))
-    total_score = score.get("total_score", "")
-    one_line_summary = score.get("one_line_summary", "")
-    reasoning = score.get("reasoning", "")
-    body_text = release.get("body_text", "")
+    title = entry.get("title", "")
+    source = entry.get("source", "")
+    url = entry.get("url", "")
+    published_date = entry.get("published_date", "")
+    target = entry.get("target", "")
+    genre = entry.get("genre") or GENRE_UNKNOWN
+    grade = entry.get("grade", GRADE_UNKNOWN)
+    total_score = entry.get("total_score", "")
+    one_line_summary = entry.get("one_line_summary", "")
+    reasoning = entry.get("reasoning", "")
 
-    meta_json = embed_meta_json(
-        {
-            "title": title,
-            "source": source,
-            "url": url,
-            "published_date": published_date,
-            "target": target,
-            "genre": genre,
-            "grade": grade,
-            "total_score": total_score,
-            "one_line_summary": one_line_summary,
-            "scores": scores,
-            "body_text": body_text[:400],
-        }
-    )
+    meta_json = embed_meta_json(build_meta_payload(entry))
 
     axis_bars = render_axis_bars(scores, labels=SCORE_AXIS_LABELS, variant="full")
     flags_line = "、".join(flags) if flags else "なし"
+    breadcrumbs = render_breadcrumbs(home_path=home_path, genre=genre, title=title)
+    related_html = render_related_sections(related)
 
     body = f"""<div class="masthead">
   <div class="masthead-inner">
@@ -753,6 +914,7 @@ def render_release_html(release: dict, *, home_path: str, css_path: str) -> str:
 </div>
 <main>
   {meta_json}
+  {breadcrumbs}
   <article class="detail-card">
     <div class="detail-head">
       <div class="grade-pill"><span class="letter">{h(grade)}</span><span class="word">GRADE</span></div>
@@ -774,6 +936,8 @@ def render_release_html(release: dict, *, home_path: str, css_path: str) -> str:
     <h2 class="section-title">評価理由</h2>
     <p>{h(reasoning)}</p>
   </article>
+
+{related_html}
 
 {AFFILIATE_SLOT_HTML}
 
@@ -838,9 +1002,13 @@ def render_index_html(
         for num, label in stats
     )
 
-    cards = "\n".join(render_index_card(entry) for entry in entries)
-    if not cards:
-        cards = '  <p class="empty-note">対象のリリースはまだありません。</p>'
+    if is_top_level:
+        # 全体一覧ページはジャンル別セクションに分けて回遊しやすくする
+        cards = render_genre_sections(entries)
+    else:
+        cards = "\n".join(render_index_card(entry) for entry in entries)
+        if not cards:
+            cards = '  <p class="empty-note">対象のリリースはまだありません。</p>'
 
     if is_top_level:
         brand_html = f'<h1 class="brand">{h(SITE_TITLE)}</h1>'
@@ -942,33 +1110,88 @@ def write_assets(site_dir: Path) -> None:
     (site_dir / ".nojekyll").write_text("", encoding="utf-8")
 
 
-def write_release_pages(releases: list[dict], site_dir: Path) -> int:
-    """スコア付きリリースをHTMLページとして書き出す。書き出した件数を返す。"""
-    written = 0
-    for release in releases:
-        score = release.get("score", {})
-        if "error" in score or "total_score" not in score:
-            logger.warning(
-                "スコアリング未完了のためスキップします: %s", release.get("url", "")
-            )
-            continue
+def build_entry_from_release(release: dict) -> dict | None:
+    """analyzer.pyが出力した1件のリリースを、サイト生成で扱う共通entry形式に変換する。
 
-        grade = grade_dir_name(score.get("grade"))
-        target_slug = target_slug_name(release.get("target"))
-        page_dir = site_dir / grade / target_slug
-        page_dir.mkdir(parents=True, exist_ok=True)
-
-        filename = f"{url_hash(release.get('url', ''))}.html"
-        page_path = page_dir / filename
-        html_text = render_release_html(
-            release,
-            home_path="../../index.html",
-            css_path="../../assets/style.css",
+    スコアリングが未完了(エラー)のリリースはNoneを返し、呼び出し側でスキップする。
+    """
+    score = release.get("score", {})
+    if "error" in score or "total_score" not in score:
+        logger.warning(
+            "スコアリング未完了のためスキップします: %s", release.get("url", "")
         )
-        page_path.write_text(html_text, encoding="utf-8")
-        written += 1
+        return None
 
-    return written
+    grade = grade_dir_name(score.get("grade"))
+    target = release.get("target", "")
+    target_slug = target_slug_name(target)
+    url = release.get("url", "")
+    filename = f"{url_hash(url)}.html"
+    raw_title = release.get("title", "")
+    total_score = score.get("total_score", "")
+    catchy_title = score.get("catchy_title")
+    display_title = compute_display_title(
+        title=raw_title, grade=grade, total_score=total_score, catchy_title=catchy_title
+    )
+
+    return {
+        "raw_title": raw_title,
+        "catchy_title": catchy_title,
+        "title": display_title,
+        "source": release.get("source", ""),
+        "url": url,
+        "published_date": release.get("published_date", ""),
+        "target": target,
+        "target_slug": target_slug,
+        "genre": release.get("genre") or GENRE_UNKNOWN,
+        "grade": grade,
+        "total_score": total_score,
+        "one_line_summary": score.get("one_line_summary", ""),
+        "reasoning": score.get("reasoning", ""),
+        "flags": score.get("flags", []),
+        "scores": score.get("scores", {}),
+        "body_text": (release.get("body_text") or "")[:400],
+        "filename": filename,
+        "relative_path": f"{grade}/{target_slug}/{filename}",
+    }
+
+
+def compute_related(entry: dict, all_entries: list[dict], *, limit: int = 5) -> dict:
+    """回遊導線用に、同grade・同ジャンル・新着の関連記事リスト(各最大limit件、新しい順)を計算する。"""
+    others = [e for e in all_entries if e["relative_path"] != entry["relative_path"]]
+
+    same_grade = sorted(
+        (e for e in others if e["grade"] == entry["grade"]),
+        key=lambda e: e["published_date"],
+        reverse=True,
+    )[:limit]
+
+    entry_genre = entry.get("genre") or GENRE_UNKNOWN
+    same_genre = sorted(
+        (e for e in others if (e.get("genre") or GENRE_UNKNOWN) == entry_genre),
+        key=lambda e: e["published_date"],
+        reverse=True,
+    )[:limit]
+
+    latest = sorted(others, key=lambda e: e["published_date"], reverse=True)[:limit]
+
+    return {"grade": same_grade, "genre": same_genre, "latest": latest}
+
+
+def write_release_page(entry: dict, all_entries: list[dict], site_dir: Path) -> None:
+    """1件のentryを記事詳細ページとして書き出す。関連記事はall_entries全体から計算する。"""
+    page_dir = site_dir / entry["grade"] / entry["target_slug"]
+    page_dir.mkdir(parents=True, exist_ok=True)
+
+    page_path = page_dir / entry["filename"]
+    related = compute_related(entry, all_entries)
+    html_text = render_release_html(
+        entry,
+        home_path="../../index.html",
+        css_path="../../assets/style.css",
+        related=related,
+    )
+    page_path.write_text(html_text, encoding="utf-8")
 
 
 _META_SCRIPT_PATTERN = re.compile(
@@ -1000,20 +1223,36 @@ def scan_existing_pages(site_dir: Path) -> list[dict]:
                 except json.JSONDecodeError:
                     logger.warning("メタデータのパースに失敗しました: %s", page_path)
                     continue
+
+                grade = grade_dir.name
+                total_score = meta.get("total_score", "")
+                # 旧形式のページには raw_title/catchy_title が無く、当時の "title" が元見出しに相当する。
+                raw_title = meta.get("raw_title", meta.get("title", ""))
+                catchy_title = meta.get("catchy_title")
+                display_title = compute_display_title(
+                    title=raw_title, grade=grade, total_score=total_score, catchy_title=catchy_title
+                )
+
                 entries.append(
                     {
-                        "title": meta.get("title", ""),
+                        "raw_title": raw_title,
+                        "catchy_title": catchy_title,
+                        "title": display_title,
                         "source": meta.get("source", ""),
+                        "url": meta.get("url", ""),
                         "published_date": meta.get("published_date", ""),
                         "target": meta.get("target", ""),
                         "genre": meta.get("genre") or GENRE_UNKNOWN,
-                        "grade": grade_dir.name,
+                        "grade": grade,
                         "target_slug": target_dir.name,
-                        "total_score": meta.get("total_score", ""),
+                        "total_score": total_score,
                         "one_line_summary": meta.get("one_line_summary", ""),
+                        "reasoning": meta.get("reasoning", ""),
+                        "flags": meta.get("flags", []),
                         "scores": meta.get("scores", {}),
                         "body_text": meta.get("body_text", ""),
                         "filename": page_path.name,
+                        "relative_path": f"{grade}/{target_dir.name}/{page_path.name}",
                     }
                 )
     return entries
@@ -1045,11 +1284,8 @@ def build_indexes(entries: list[dict], site_dir: Path) -> None:
             encoding="utf-8",
         )
 
-    all_entries = sorted(entries, key=lambda e: e["published_date"], reverse=True)
-    top_entries = [
-        {**e, "relative_path": f"{e['grade']}/{e['target_slug']}/{e['filename']}"}
-        for e in all_entries
-    ]
+    # top_entriesのrelative_pathは既に "grade/target_slug/filename" 形式で保持されている
+    top_entries = sorted(entries, key=lambda e: e["published_date"], reverse=True)
     site_dir.mkdir(parents=True, exist_ok=True)
     (site_dir / "index.html").write_text(
         render_index_html(
@@ -1064,18 +1300,34 @@ def build_indexes(entries: list[dict], site_dir: Path) -> None:
 
 
 def build_site(releases: list[dict], site_dir: Path = SITE_DIR) -> None:
-    """スコア付きリリースのリストから、当日分のページを追加し、サイト全体を再構築する。"""
-    write_assets(site_dir)
-    written = write_release_pages(releases, site_dir)
+    """スコア付きリリースのリストから、当日分のページを追加し、サイト全体を再構築する。
 
-    # インデックスは過去分も含めてsite_dir全体を再スキャンして再構築する
-    # (実行日ごとにindex.htmlが当日分だけで上書きされるのを防ぐため)
-    all_entries = scan_existing_pages(site_dir)
+    関連記事の回遊導線(同grade・同ジャンル・新着)は生成済みの全記事データから計算するため、
+    既存ページも含めて全件を再レンダリングする(手作業でのリンク追加は不要)。
+    """
+    write_assets(site_dir)
+
+    existing_entries = scan_existing_pages(site_dir)
+    fresh_entries = [
+        entry
+        for entry in (build_entry_from_release(release) for release in releases)
+        if entry is not None
+    ]
+
+    # relative_pathをキーにマージすることで、再スコアされたリリースは新しい内容で上書きする
+    merged: dict[str, dict] = {entry["relative_path"]: entry for entry in existing_entries}
+    for entry in fresh_entries:
+        merged[entry["relative_path"]] = entry
+    all_entries = list(merged.values())
+
+    for entry in all_entries:
+        write_release_page(entry, all_entries, site_dir)
+
     build_indexes(all_entries, site_dir)
 
     logger.info(
-        "サイト生成完了: 当日分 %d件を書き出し、全体で %d件のページを一覧に反映 -> %s",
-        written,
+        "サイト生成完了: 新規/更新 %d件、全体で %d件のページを再構築 -> %s",
+        len(fresh_entries),
         len(all_entries),
         site_dir,
     )
