@@ -125,7 +125,7 @@ SCORE_JSON_SCHEMA = {
             "additionalProperties": False,
         },
         "flags": {"type": "array", "items": {"type": "string"}},
-        "reasoning": {"type": "string"},
+        "reasoning": {"type": "string", "minLength": 1},
         "one_line_summary": {"type": "string"},
         "catchy_title": {"type": "string"},
     },
