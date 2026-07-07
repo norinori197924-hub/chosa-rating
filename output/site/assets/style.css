@@ -262,6 +262,10 @@ footer {
   color: var(--muted);
   border-top: 1px solid var(--hairline);
 }
+footer a { color: var(--navy-700); text-decoration: none; margin-left: 6px; }
+@media (prefers-color-scheme: dark) { footer a { color: var(--gold); } }
+:root[data-theme="dark"] footer a { color: var(--gold); }
+footer a:hover { text-decoration: underline; }
 
 /* 記事詳細ページ */
 .detail-card {
@@ -301,6 +305,8 @@ footer {
 :root[data-theme="dark"] .source-link a { color: var(--gold); }
 
 .detail-card .section-title { margin-top: 24px; border-bottom: none; padding-bottom: 0; }
+.detail-card ul { padding-left: 1.4em; margin: 0 0 16px; }
+.detail-card li { margin-bottom: 6px; }
 
 .flags-line { font-size: 0.82rem; color: var(--muted); margin-top: 6px; }
 .flags-line b { color: var(--ink); }

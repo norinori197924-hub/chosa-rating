@@ -87,13 +87,37 @@ GRADE_LEGEND = [
     ("C", "参考程度", "開示水準が低い、または利益相反・誘導的表現の懸念がある"),
 ]
 
-SITE_TITLE = "調査リリース信頼性評価"
-SITE_TAGLINE = "SURVEY RELEASE TRUST INDEX"
+SITE_TITLE = "ホントのところ、その数字。"
+SITE_TAGLINE = "SURVEY RELEASE TRUST INDEX — 調査リリース信頼性評価"
 
 AFFILIATE_SLOT_HTML = """  <div id="affiliate-slot" class="affiliate-slot">
     <span class="affiliate-label">SPONSORED</span>
     <!-- ここにアフィリエイト広告タグを挿入してください -->
   </div>"""
+
+ABOUT_PAGE_TITLE = "このサイトについて"
+
+ABOUT_CONTENT_HTML = """  <article class="detail-card">
+    <h1 class="detail-title">このサイトについて</h1>
+
+    <h2 class="section-title">運営者について</h2>
+    <p>本サイトは、NORIが個人開発者として、副業で運営しています。マーケティング・広報分野で配信される「調査・アンケート」系のプレスリリースが年々増える一方で、その信頼性を読者自身が見極めるのは簡単ではありません。そうした課題意識から、本サイトを立ち上げました。</p>
+
+    <h2 class="section-title">このサイトの評価対象について</h2>
+    <p>本サイトが評価しているのは、PR TIMES・@Pressを通じて配信される、調査を実施した企業・団体自身が発信するプレスリリースです。</p>
+    <p>報道機関がその調査結果を取材・引用して書いた記事(二次情報)は、評価の対象に含めていません。評価軸(透明性・調査手法の開示・サンプルの妥当性・利益相反・中立性)は、あくまで「発信者自身の開示姿勢」を測るものであり、一次情報である配信元のプレスリリースを対象とすることで、評価の一貫性を保っています。</p>
+
+    <h2 class="section-title">採点方法について</h2>
+    <p>すべての評価は、Anthropic社のAI「Claude」(claude-haikuモデル)による自動採点です。人間の記者や専門家による個別レビューではありません。</p>
+    <p>5つの評価軸(各20点、合計100点)に基づき、公開されているプレスリリースの本文のみを情報源として、機械的に採点しています。</p>
+
+    <h2 class="section-title">ご利用にあたっての注意</h2>
+    <ul>
+      <li>本サイトの評価点は、あくまで「開示情報の透明性」を測る参考指標であり、調査結果そのものの正しさ・妥当性を保証するものではありません。</li>
+      <li>AIによる自動採点のため、稀に判断に誤りが含まれる可能性があります。</li>
+      <li>評価対象の追加・変更は、運営者の判断により予告なく行うことがあります。</li>
+    </ul>
+  </article>"""
 
 CSS_CONTENT = """:root {
   --navy-900: #0b1f3a;
@@ -359,6 +383,10 @@ footer {
   color: var(--muted);
   border-top: 1px solid var(--hairline);
 }
+footer a { color: var(--navy-700); text-decoration: none; margin-left: 6px; }
+@media (prefers-color-scheme: dark) { footer a { color: var(--gold); } }
+:root[data-theme="dark"] footer a { color: var(--gold); }
+footer a:hover { text-decoration: underline; }
 
 /* 記事詳細ページ */
 .detail-card {
@@ -398,6 +426,8 @@ footer {
 :root[data-theme="dark"] .source-link a { color: var(--gold); }
 
 .detail-card .section-title { margin-top: 24px; border-bottom: none; padding-bottom: 0; }
+.detail-card ul { padding-left: 1.4em; margin: 0 0 16px; }
+.detail-card li { margin-bottom: 6px; }
 
 .flags-line { font-size: 0.82rem; color: var(--muted); margin-top: 6px; }
 .flags-line b { color: var(--ink); }
@@ -756,6 +786,11 @@ def render_grade_legend() -> str:
   </div>"""
 
 
+def about_path_from_home(home_path: str) -> str:
+    """home_path(トップページへの相対パス)から、同じ階層にある about.html への相対パスを導出する。"""
+    return home_path.replace("index.html", "about.html")
+
+
 def genre_anchor(genre: str) -> str:
     """ジャンル名からアンカーID(CSS/URL安全な文字列)を生成する。"""
     return "genre-" + hashlib.md5((genre or GENRE_UNKNOWN).encode("utf-8")).hexdigest()[:8]
@@ -944,10 +979,39 @@ def render_release_html(entry: dict, *, home_path: str, css_path: str, related: 
   <p class="back-link"><a href="{home_path}">&laquo; 一覧に戻る</a></p>
 </main>
 <footer>
-  調査リリースの信頼性を客観的な開示情報に基づき評価しています。
+  調査リリースの信頼性を客観的な開示情報に基づき評価しています。<a href="{h(about_path_from_home(home_path))}">このサイトについて</a>
 </footer>"""
 
     return html_document(title=f"{title} | {SITE_TITLE}", css_path=css_path, body=body)
+
+
+def render_about_html(*, home_path: str, css_path: str) -> str:
+    """固定ページ「このサイトについて」(/about.html)をレンダリングする。"""
+    about_path = about_path_from_home(home_path)
+    breadcrumbs = f"""<nav class="breadcrumbs" aria-label="パンくずリスト">
+  <ol>
+    <li><a href="{h(home_path)}">トップ</a></li>
+    <li aria-current="page">{h(ABOUT_PAGE_TITLE)}</li>
+  </ol>
+</nav>"""
+
+    body = f"""<div class="masthead">
+  <div class="masthead-inner">
+    <a class="brand" href="{home_path}">{h(SITE_TITLE)}</a>
+    <span class="tagline">{h(SITE_TAGLINE)}</span>
+  </div>
+</div>
+<main>
+  {breadcrumbs}
+{ABOUT_CONTENT_HTML}
+
+  <p class="back-link"><a href="{home_path}">&laquo; 一覧に戻る</a></p>
+</main>
+<footer>
+  調査リリースの信頼性を客観的な開示情報に基づき評価しています。<a href="{h(about_path)}">このサイトについて</a>
+</footer>"""
+
+    return html_document(title=f"{ABOUT_PAGE_TITLE} | {SITE_TITLE}", css_path=css_path, body=body)
 
 
 def render_index_card(entry: dict) -> str:
@@ -1094,7 +1158,7 @@ def render_index_html(
 </main>
 
 <footer>
-  調査リリースの信頼性を客観的な開示情報に基づき評価しています。
+  調査リリースの信頼性を客観的な開示情報に基づき評価しています。<a href="{h(about_path_from_home(home_path))}">このサイトについて</a>
 </footer>
 {search_script_tag}"""
 
@@ -1108,6 +1172,15 @@ def write_assets(site_dir: Path) -> None:
     (assets_dir / "style.css").write_text(CSS_CONTENT, encoding="utf-8")
     (assets_dir / "search.js").write_text(SEARCH_JS_CONTENT, encoding="utf-8")
     (site_dir / ".nojekyll").write_text("", encoding="utf-8")
+
+
+def write_about_page(site_dir: Path) -> None:
+    """固定ページ「このサイトについて」をsite_dir/about.htmlとして書き出す。"""
+    site_dir.mkdir(parents=True, exist_ok=True)
+    (site_dir / "about.html").write_text(
+        render_about_html(home_path="index.html", css_path="assets/style.css"),
+        encoding="utf-8",
+    )
 
 
 def build_entry_from_release(release: dict) -> dict | None:
@@ -1306,6 +1379,7 @@ def build_site(releases: list[dict], site_dir: Path = SITE_DIR) -> None:
     既存ページも含めて全件を再レンダリングする(手作業でのリンク追加は不要)。
     """
     write_assets(site_dir)
+    write_about_page(site_dir)
 
     existing_entries = scan_existing_pages(site_dir)
     fresh_entries = [
