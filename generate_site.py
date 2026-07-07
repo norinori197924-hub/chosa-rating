@@ -880,6 +880,18 @@ def render_genre_sections(entries: list[dict]) -> str:
     return nav_html + "\n\n" + "\n\n".join(sections)
 
 
+GTAG_ID = "G-1R7H87DFRX"
+
+GTAG_SNIPPET = f"""<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id={GTAG_ID}"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){{dataLayer.push(arguments);}}
+  gtag('js', new Date());
+  gtag('config', '{GTAG_ID}');
+</script>"""
+
+
 def html_document(*, title: str, css_path: str, body: str) -> str:
     """HTML文書全体をレンダリングする。"""
     return f"""<!DOCTYPE html>
@@ -889,6 +901,7 @@ def html_document(*, title: str, css_path: str, body: str) -> str:
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{h(title)}</title>
 <link rel="stylesheet" href="{css_path}">
+{GTAG_SNIPPET}
 </head>
 <body>
 {body}
