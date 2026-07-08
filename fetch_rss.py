@@ -3,6 +3,11 @@ PRTIMESと@PressのRSSフィードから「調査・アンケート」カテゴ�
 
 タイトルまたは本文に指定キーワードを含むリリースのみを抽出し、
 /output/releases/YYYY-MM-DD.json に保存する。
+
+RSSフィードはローリング形式(直近の一定件数のみを返す)のため、同じ記事が
+複数日にわたってフィードに残り続けることがある。output/site配下の既存記事
+(generate_site.scan_existing_pages)から採点済みURLの集合を取得し、
+既に採点済みのURLは抽出対象から除外することで、同一記事の重複採点を防ぐ。
 """
 
 from __future__ import annotations
@@ -19,6 +24,8 @@ from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 from html import unescape
 from pathlib import Path
+
+import generate_site as gs
 
 logging.basicConfig(
     level=logging.INFO,
@@ -178,6 +185,12 @@ def collect_releases_from_feed(source: str, url: str) -> list[Release]:
     return releases
 
 
+def load_processed_urls() -> set[str]:
+    """output/site配下の既存記事から、採点済み(=既に記事ページが存在する)URLの集合を取得する。"""
+    entries = gs.scan_existing_pages(gs.SITE_DIR)
+    return {entry["url"] for entry in entries if entry.get("url")}
+
+
 def save_releases(releases: list[Release], output_dir: Path = OUTPUT_DIR) -> Path:
     """抽出結果を日付付きJSONファイルとして保存する。"""
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -194,11 +207,20 @@ def save_releases(releases: list[Release], output_dir: Path = OUTPUT_DIR) -> Pat
 
 
 def main() -> None:
+    processed_urls = load_processed_urls()
+    logger.info("採点済みURL: %d件を除外対象として読み込みました", len(processed_urls))
+
     all_releases: list[Release] = []
     for index, (source, url) in enumerate(RSS_FEEDS):
         all_releases.extend(collect_releases_from_feed(source, url))
         if index < len(RSS_FEEDS) - 1:
             time.sleep(REQUEST_INTERVAL_SEC)
+
+    before_count = len(all_releases)
+    all_releases = [r for r in all_releases if r.url not in processed_urls]
+    skipped = before_count - len(all_releases)
+    if skipped:
+        logger.info("採点済みのため除外しました: %d件", skipped)
 
     save_releases(all_releases)
     logger.info("合計 %d件のリリースを抽出しました", len(all_releases))

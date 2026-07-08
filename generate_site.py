@@ -27,7 +27,9 @@ import hashlib
 import json
 import logging
 import re
+import subprocess
 import sys
+import time
 from html import escape as h
 from pathlib import Path
 
@@ -1385,6 +1387,79 @@ def build_indexes(entries: list[dict], site_dir: Path) -> None:
     )
 
 
+def _entry_first_commit_time(entry: dict, site_dir: Path) -> float:
+    """重複排除のタイブレーク用に、entryのページファイルが最初にgitへコミットされた日時(UNIX時間)を返す。
+
+    published_dateが同一の重複記事は「どちらが後から採点されたか」を判定する材料がないため、
+    ページファイルが最初にコミットされた日時(=そのバッチが実行された日時に近い)で代用する。
+    まだコミットされていないentry(今回のバッチで新規/再採点されたもの)は、
+    最新として扱うため現在時刻を返す。gitが使えない場合はファイルの更新日時にフォールバックする。
+    """
+    page_path = site_dir / entry["relative_path"]
+    if not page_path.exists():
+        return time.time()
+
+    try:
+        result = subprocess.run(
+            ["git", "log", "--format=%at", "--diff-filter=A", "--follow", "--", page_path.as_posix()],
+            cwd=BASE_DIR,
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+    except (subprocess.CalledProcessError, FileNotFoundError, OSError):
+        return page_path.stat().st_mtime
+
+    timestamps = [int(line) for line in result.stdout.splitlines() if line.strip()]
+    if not timestamps:
+        return page_path.stat().st_mtime
+    return float(min(timestamps))
+
+
+def dedupe_by_url(entries: list[dict], site_dir: Path) -> list[dict]:
+    """同一URLの記事が複数grade/targetフォルダにまたがって存在する場合、
+    published_dateが最新の1件(タイの場合はページファイルが最初にコミットされた日時が新しい方)
+    だけを残す。除外された側の古いページファイルはsite_dirから削除する。
+
+    fetch_rss.py側で採点済みURLを除外していても、過去に(重複除外ロジックが無い時期に)
+    生成された重複ページが残っているケースの保険として機能する。
+    """
+    by_url: dict[str, list[dict]] = {}
+    entries_without_url: list[dict] = []
+    for entry in entries:
+        url = entry.get("url")
+        if url:
+            by_url.setdefault(url, []).append(entry)
+        else:
+            entries_without_url.append(entry)
+
+    kept: list[dict] = list(entries_without_url)
+    for url, group in by_url.items():
+        if len(group) == 1:
+            kept.append(group[0])
+            continue
+
+        group_sorted = sorted(
+            group,
+            key=lambda e: (e["published_date"], _entry_first_commit_time(e, site_dir)),
+            reverse=True,
+        )
+        winner, *losers = group_sorted
+        kept.append(winner)
+        for loser in losers:
+            page_path = site_dir / loser["relative_path"]
+            if page_path.exists():
+                page_path.unlink()
+            logger.info(
+                "重複記事のため除外しました: %s (採用: %s, url=%s)",
+                loser["relative_path"],
+                winner["relative_path"],
+                url,
+            )
+
+    return kept
+
+
 def build_site(releases: list[dict], site_dir: Path = SITE_DIR) -> None:
     """スコア付きリリースのリストから、当日分のページを追加し、サイト全体を再構築する。
 
@@ -1406,6 +1481,10 @@ def build_site(releases: list[dict], site_dir: Path = SITE_DIR) -> None:
     for entry in fresh_entries:
         merged[entry["relative_path"]] = entry
     all_entries = list(merged.values())
+
+    # 同一URLの記事が再採点によって別gradeフォルダの重複ページとして残ることがあるため、
+    # 最新の1件だけを残し、古い側のページファイルを削除する
+    all_entries = dedupe_by_url(all_entries, site_dir)
 
     for entry in all_entries:
         write_release_page(entry, all_entries, site_dir)

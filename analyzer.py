@@ -7,6 +7,7 @@ classify_target.pyが出力した分類済みリリースを、Claude Batch API�
   3. バッチ完了までポーリング
   4. 結果(JSON)を取得し、各リリースに score フィールドとして付与
   5. output/scores/YYYY-MM-DD.json に保存
+  6. バッチのトークン使用量(入力/出力)を output/usage/YYYY-MM-DD.json に保存
 
 環境変数 ANTHROPIC_API_KEY からAPIキーを取得する(anthropicライブラリの既定動作)。
 """
@@ -32,6 +33,7 @@ logger = logging.getLogger("analyzer")
 BASE_DIR = Path(__file__).resolve().parent
 CLASSIFIED_DIR = BASE_DIR / "output" / "classified"
 SCORES_DIR = BASE_DIR / "output" / "scores"
+USAGE_DIR = BASE_DIR / "output" / "usage"
 
 # コスト最優先でHaiku 4.5を使用
 MODEL = "claude-haiku-4-5"
@@ -68,7 +70,10 @@ SYSTEM_PROMPT = """あなたは市場調査の品質を評価する専門家で�
 【catchy_titleの生成ルール】
 サイト一覧・記事ページのタイトル表示用に、以下のルールで catchy_title を生成してください。
 - 形式は「【{grade}評価・{total_score}点】{元の見出し}」とすること
-  (ここでの grade・total_score は、このレスポンス自身が算出した grade・total_score の値と一致させること)
+  (ここでの grade は、このレスポンス自身が算出した grade の値と一致させること。
+   total_score は、上記 scores の5軸(transparency・methodology・sample_validity・
+   conflict_of_interest・neutrality)の値をそのまま合計した点数を用いること。
+   total_score自体は出力JSONのフィールドとしては出力しない)
 - 元の見出し自体の文言は改変しないこと(削除・要約・言い換え・語順の変更をしない)
 - 元の見出しがそのまま数字や結論を含み、プレフィックスを付けると文として据わりが悪い場合に限り、
   末尾に「〜を検証」「〜の実態を確認」等、中立的で控えめな動詞句を軽く添えてもよい
@@ -80,7 +85,6 @@ SYSTEM_PROMPT = """あなたは市場調査の品質を評価する専門家で�
 以下のJSON形式のみで出力してください。前置き・後書きは一切不要です。
 
 {
-  "total_score": 数値(0-100),
   "grade": "A" | "B" | "C",
   "scores": {
     "transparency": 数値,
@@ -95,6 +99,8 @@ SYSTEM_PROMPT = """あなたは市場調査の品質を評価する専門家で�
   "catchy_title": "上記【catchy_titleの生成ルール】に従って生成したタイトル"
 }
 
+(total_scoreはこのJSONには含めないこと。scoresの5軸合計として別途システム側で機械的に算出する)
+
 【重要な制約】
 - 断定的な信頼性の欠如を主張せず、開示情報の有無という客観的事実のみを根拠にすること
 - 名誉毀損リスクを避けるため、企業名や個人への評価ではなく「この調査リリースの開示水準」への評価に徹すること
@@ -102,11 +108,21 @@ SYSTEM_PROMPT = """あなたは市場調査の品質を評価する専門家で�
 - 該当フラグが1つもない場合でも、reasoningを空文字にしてはならない。その場合は、各軸のスコアが満点でない理由、
   または満点に近い評価となった根拠(透明性が十分か、手法が明記されているか等)を、具体的に1〜2文で記述すること"""
 
+# 5軸のキー名。total_scoreはモデルには生成させず、この5軸の値をPython側で機械的に合計する
+# (モデルが自己申告するtotal_scoreとscores内訳の合計が食い違う不具合を構造的に防ぐため)
+SCORE_AXES = [
+    "transparency",
+    "methodology",
+    "sample_validity",
+    "conflict_of_interest",
+    "neutrality",
+]
+
 # system promptの出力形式指示に対応するJSON Schema(Structured Outputsで形式を保証する)
+# total_scoreはモデルの出力対象から意図的に除外している(collect_results側でscoresの5軸合計から算出する)
 SCORE_JSON_SCHEMA = {
     "type": "object",
     "properties": {
-        "total_score": {"type": "integer"},
         "grade": {"type": "string", "enum": ["A", "B", "C"]},
         "scores": {
             "type": "object",
@@ -132,7 +148,6 @@ SCORE_JSON_SCHEMA = {
         "catchy_title": {"type": "string"},
     },
     "required": [
-        "total_score",
         "grade",
         "scores",
         "flags",
@@ -217,19 +232,30 @@ def wait_for_batch(client: anthropic.Anthropic, batch_id: str) -> None:
         elapsed += POLL_INTERVAL_SEC
 
 
-def collect_results(client: anthropic.Anthropic, batch_id: str) -> dict[str, dict]:
-    """バッチ結果を取得し、custom_idをキーにしたスコア辞書を返す。"""
+def collect_results(
+    client: anthropic.Anthropic, batch_id: str
+) -> tuple[dict[str, dict], dict[str, int]]:
+    """バッチ結果を取得し、custom_idをキーにしたスコア辞書と、トークン使用量の合計を返す。"""
     scores_by_id: dict[str, dict] = {}
+    usage_totals = {"input_tokens": 0, "output_tokens": 0}
     for result in client.messages.batches.results(batch_id):
         if result.result.type == "succeeded":
+            message = result.result.message
+            usage_totals["input_tokens"] += message.usage.input_tokens
+            usage_totals["output_tokens"] += message.usage.output_tokens
             text = next(
-                (b.text for b in result.result.message.content if b.type == "text"),
+                (b.text for b in message.content if b.type == "text"),
                 "",
             )
             try:
                 scores_by_id[result.custom_id] = json.loads(text)
                 if not scores_by_id[result.custom_id].get("reasoning", "").strip():
                     scores_by_id[result.custom_id]["reasoning"] = "特定不能（モデルが理由を生成できませんでした）"
+                # total_scoreはモデルに生成させず、scoresの5軸合計から機械的に算出する
+                axis_scores = scores_by_id[result.custom_id].get("scores", {})
+                scores_by_id[result.custom_id]["total_score"] = sum(
+                    axis_scores.get(axis, 0) for axis in SCORE_AXES
+                )
             except json.JSONDecodeError:
                 logger.error("JSONのパースに失敗しました: %s", result.custom_id)
                 scores_by_id[result.custom_id] = {"error": "invalid_json", "raw": text}
@@ -245,7 +271,7 @@ def collect_results(client: anthropic.Anthropic, batch_id: str) -> dict[str, dic
                 "未処理の結果タイプ: %s (%s)", result.custom_id, result.result.type
             )
             scores_by_id[result.custom_id] = {"error": result.result.type}
-    return scores_by_id
+    return scores_by_id, usage_totals
 
 
 def find_input_path(date_str: str | None) -> Path:
@@ -277,7 +303,7 @@ def main() -> None:
     requests = build_batch_requests(releases)
     batch_id = submit_batch(client, requests)
     wait_for_batch(client, batch_id)
-    scores_by_id = collect_results(client, batch_id)
+    scores_by_id, usage_totals = collect_results(client, batch_id)
 
     scored_releases: list[dict] = []
     for index, release in enumerate(releases):
@@ -291,6 +317,30 @@ def main() -> None:
         encoding="utf-8",
     )
     logger.info("保存しました: %s (%d件)", output_path, len(scored_releases))
+
+    USAGE_DIR.mkdir(parents=True, exist_ok=True)
+    usage_path = USAGE_DIR / input_path.name
+    usage_path.write_text(
+        json.dumps(
+            {
+                "date": input_path.stem,
+                "batch_id": batch_id,
+                "model": MODEL,
+                "request_count": len(releases),
+                "input_tokens": usage_totals["input_tokens"],
+                "output_tokens": usage_totals["output_tokens"],
+            },
+            ensure_ascii=False,
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+    logger.info(
+        "トークン使用量を記録しました: %s (入力%d件/出力%d件)",
+        usage_path,
+        usage_totals["input_tokens"],
+        usage_totals["output_tokens"],
+    )
 
 
 if __name__ == "__main__":
