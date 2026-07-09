@@ -67,19 +67,19 @@ SYSTEM_PROMPT = """あなたは市場調査の品質を評価する専門家で�
    - リリースの見出し・要約が、本文データから導ける結論と一致しているか
    - 質問文自体が誘導的でないか(全文が開示されている場合のみ評価。非開示の場合は12点を上限とする)
 
-【catchy_titleの生成ルール】
-サイト一覧・記事ページのタイトル表示用に、以下のルールで catchy_title を生成してください。
-- 形式は「【{grade}評価・{total_score}点】{元の見出し}」とすること
-  (ここでの grade は、このレスポンス自身が算出した grade の値と一致させること。
-   total_score は、上記 scores の5軸(transparency・methodology・sample_validity・
-   conflict_of_interest・neutrality)の値をそのまま合計した点数を用いること。
-   total_score自体は出力JSONのフィールドとしては出力しない)
-- 元の見出し自体の文言は改変しないこと(削除・要約・言い換え・語順の変更をしない)
-- 元の見出しがそのまま数字や結論を含み、プレフィックスを付けると文として据わりが悪い場合に限り、
-  末尾に「〜を検証」「〜の実態を確認」等、中立的で控えめな動詞句を軽く添えてもよい
-  (例: 元の見出しが「約9割が期待する「資格取得支援」の実態調査」、grade=B、total_score=58 の場合
-   → "【B評価・58点】約9割が期待する「資格取得支援」の実態調査、その信頼度を検証")
-- 扇情的な煽り文句(「衝撃」「まさかの」「炎上」等)や誇張表現は一切使わないこと
+【調査概要の抽出】
+本文から以下4項目を抽出してください。記載がなければ推測せず「記載なし」としてください(捏造禁止):
+- target_respondents: 調査対象者
+- question_count: 設問数
+- sample_size: サンプル数(有効回答数)
+- quota_allocation: 割付(性別・年代等の均等割付の有無)
+
+【title_suffixの生成ルール】
+grade と total_score は算出しないこと(Python側で機械計算する)。
+かわりに、元の見出しに添える短い動詞句のみを title_suffix として生成してください。
+- 例:「、その信頼度を検証」「、実態を確認」など、中立的で控えめなもの
+- 不要と判断した場合は空文字でよい
+- 扇情的な煽り文句(「衝撃」「まさかの」「炎上」等)は一切使わないこと
 
 【出力形式】
 以下のJSON形式のみで出力してください。前置き・後書きは一切不要です。
@@ -96,10 +96,17 @@ SYSTEM_PROMPT = """あなたは市場調査の品質を評価する専門家で�
   "flags": ["n数非公開", "自社調査", "誘導的見出し" など該当するものを配列で],
   "reasoning": "各軸で減点した理由を1-2文ずつ、事実ベースで簡潔に記述。主観的な断定表現(「怪しい」「信用できない」等)は使わず、「n数の記載が確認できない」「調査主体が依頼主と同一である」等の客観的表現に統一すること。",
   "one_line_summary": "サイト掲載用の一言コメント(20文字以内、事実ベース)",
-  "catchy_title": "上記【catchy_titleの生成ルール】に従って生成したタイトル"
+  "title_suffix": "上記【title_suffixの生成ルール】に従って生成した短い動詞句(不要なら空文字)",
+  "survey_overview": {
+    "target_respondents": "調査対象者(記載なしの場合は「記載なし」)",
+    "question_count": "設問数(記載なしの場合は「記載なし」)",
+    "sample_size": "サンプル数・有効回答数(記載なしの場合は「記載なし」)",
+    "quota_allocation": "割付の有無・内容(記載なしの場合は「記載なし」)"
+  }
 }
 
-(total_scoreはこのJSONには含めないこと。scoresの5軸合計として別途システム側で機械的に算出する)
+(total_score・catchy_titleはこのJSONには含めないこと。total_scoreはscoresの5軸合計から、
+catchy_titleは元の見出し・grade・total_score・title_suffixから、別途システム側で機械的に組み立てる)
 
 【重要な制約】
 - 断定的な信頼性の欠如を主張せず、開示情報の有無という客観的事実のみを根拠にすること
@@ -119,7 +126,8 @@ SCORE_AXES = [
 ]
 
 # system promptの出力形式指示に対応するJSON Schema(Structured Outputsで形式を保証する)
-# total_scoreはモデルの出力対象から意図的に除外している(collect_results側でscoresの5軸合計から算出する)
+# total_score・catchy_titleはモデルの出力対象から意図的に除外している
+# (collect_results/main側でscoresの5軸合計・title_suffixから機械的に算出・組み立てる)
 SCORE_JSON_SCHEMA = {
     "type": "object",
     "properties": {
@@ -145,7 +153,23 @@ SCORE_JSON_SCHEMA = {
         "flags": {"type": "array", "items": {"type": "string"}},
         "reasoning": {"type": "string", "minLength": 1},
         "one_line_summary": {"type": "string"},
-        "catchy_title": {"type": "string"},
+        "title_suffix": {"type": "string"},
+        "survey_overview": {
+            "type": "object",
+            "properties": {
+                "target_respondents": {"type": "string"},
+                "question_count": {"type": "string"},
+                "sample_size": {"type": "string"},
+                "quota_allocation": {"type": "string"},
+            },
+            "required": [
+                "target_respondents",
+                "question_count",
+                "sample_size",
+                "quota_allocation",
+            ],
+            "additionalProperties": False,
+        },
     },
     "required": [
         "grade",
@@ -153,7 +177,8 @@ SCORE_JSON_SCHEMA = {
         "flags",
         "reasoning",
         "one_line_summary",
-        "catchy_title",
+        "title_suffix",
+        "survey_overview",
     ],
     "additionalProperties": False,
 }
@@ -171,6 +196,22 @@ def build_user_content(release: dict) -> str:
         "本文:\n"
         f"{release.get('body_text', '')}"
     )
+
+
+def build_catchy_title(raw_title: str, score: dict) -> str:
+    """raw_title・Python側で確定させたgrade/total_score・モデルが生成したtitle_suffixから、
+    表示用タイトル(catchy_title)を組み立てる。
+
+    grade・total_scoreはモデルの自己申告ではなく、この関数に渡すscore辞書内の確定値
+    (collect_resultsが機械計算したtotal_score、モデルが出力したgrade)をそのまま使うため、
+    タイトル文中の点数表示とJSON側のtotal_scoreが食い違うことがない。
+    """
+    grade = score.get("grade", "")
+    total_score = score.get("total_score", "")
+    suffix = score.get("title_suffix", "") or ""
+    if grade not in ("A", "B", "C") or not isinstance(total_score, (int, float)):
+        return raw_title
+    return f"【{grade}評価・{total_score}点】{raw_title}{suffix}"
 
 
 def custom_id_for(index: int) -> str:
@@ -308,6 +349,8 @@ def main() -> None:
     scored_releases: list[dict] = []
     for index, release in enumerate(releases):
         score = scores_by_id.get(custom_id_for(index), {"error": "missing_result"})
+        if "error" not in score:
+            score = {**score, "catchy_title": build_catchy_title(release.get("title", ""), score)}
         scored_releases.append({**release, "score": score})
 
     SCORES_DIR.mkdir(parents=True, exist_ok=True)

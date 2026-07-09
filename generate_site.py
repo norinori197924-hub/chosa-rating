@@ -454,6 +454,46 @@ footer a:hover { text-decoration: underline; }
 .flags-line { font-size: 0.82rem; color: var(--muted); margin-top: 6px; }
 .flags-line b { color: var(--ink); }
 
+/* 記事詳細ページの調査概要(折りたたみ) */
+.survey-overview {
+  margin-top: 14px;
+  background: var(--paper);
+  border: 1px solid var(--hairline);
+  border-radius: 6px;
+  padding: 4px 14px;
+}
+.survey-overview summary {
+  cursor: pointer;
+  padding: 8px 4px;
+  font-size: 0.85rem;
+  color: var(--ink);
+  list-style: none;
+}
+.survey-overview summary::-webkit-details-marker { display: none; }
+.survey-overview summary::before {
+  content: "▶";
+  display: inline-block;
+  margin-right: 6px;
+  font-size: 0.7em;
+  color: var(--muted);
+  transition: transform 0.15s ease;
+}
+.survey-overview[open] summary::before { transform: rotate(90deg); }
+.survey-overview-body {
+  padding: 4px 4px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.survey-overview-row {
+  display: grid;
+  grid-template-columns: 9em 1fr;
+  gap: 8px;
+  font-size: 0.82rem;
+}
+.survey-overview-label { color: var(--muted); }
+.survey-overview-value { color: var(--ink); }
+
 .back-link { display: inline-block; margin-top: 20px; font-size: 0.85rem; }
 .back-link a { color: var(--navy-700); text-decoration: none; }
 @media (prefers-color-scheme: dark) { .back-link a { color: var(--gold); } }
@@ -656,6 +696,7 @@ footer a:hover { text-decoration: underline; }
   .detail-head { flex-direction: column; }
   .detail-head .score-block { text-align: left; }
   .axis-bar-row, .axis-bars-full .axis-bar-row { grid-template-columns: 5.5em 1fr 2em; }
+  .survey-overview-row { grid-template-columns: 1fr; gap: 2px; }
 }
 """
 
@@ -967,8 +1008,48 @@ def build_meta_payload(entry: dict) -> dict:
         "reasoning": entry.get("reasoning", ""),
         "flags": entry.get("flags", []),
         "scores": entry.get("scores", {}),
+        "survey_overview": entry.get("survey_overview", {}),
         "body_text": (entry.get("body_text") or "")[:400],
     }
+
+
+# survey_overviewの各キーに対応する表示ラベル
+SURVEY_OVERVIEW_LABELS = {
+    "target_respondents": "調査対象者",
+    "question_count": "設問数",
+    "sample_size": "サンプル数(有効回答数)",
+    "quota_allocation": "割付",
+}
+SURVEY_OVERVIEW_NOT_DISCLOSED = "記載なし"
+
+
+def render_survey_overview(survey_overview: dict) -> str:
+    """調査概要(対象者・設問数・サンプル数・割付)を折りたたみ(<details>)で表示する。
+    「記載なし」以外の項目が3件以上あれば初期状態で開く。"""
+    if not survey_overview:
+        return ""
+
+    disclosed_count = sum(
+        1
+        for key in SURVEY_OVERVIEW_LABELS
+        if (survey_overview.get(key) or SURVEY_OVERVIEW_NOT_DISCLOSED) != SURVEY_OVERVIEW_NOT_DISCLOSED
+    )
+    open_attr = " open" if disclosed_count >= 3 else ""
+
+    rows = "\n".join(
+        f'      <div class="survey-overview-row">'
+        f'<span class="survey-overview-label">{h(label)}</span>'
+        f'<span class="survey-overview-value">{h(survey_overview.get(key) or SURVEY_OVERVIEW_NOT_DISCLOSED)}</span>'
+        f"</div>"
+        for key, label in SURVEY_OVERVIEW_LABELS.items()
+    )
+
+    return f"""<details class="survey-overview"{open_attr}>
+      <summary>📋 調査概要を見る({disclosed_count}/4項目 開示)</summary>
+      <div class="survey-overview-body">
+{rows}
+      </div>
+    </details>"""
 
 
 def render_release_html(entry: dict, *, home_path: str, css_path: str, related: dict) -> str:
@@ -986,11 +1067,13 @@ def render_release_html(entry: dict, *, home_path: str, css_path: str, related: 
     total_score = entry.get("total_score", "")
     one_line_summary = entry.get("one_line_summary", "")
     reasoning = entry.get("reasoning", "")
+    survey_overview = entry.get("survey_overview", {})
 
     meta_json = embed_meta_json(build_meta_payload(entry))
 
     axis_bars = render_axis_bars(scores, labels=SCORE_AXIS_LABELS, variant="full")
     flags_line = "、".join(flags) if flags else "なし"
+    survey_overview_html = render_survey_overview(survey_overview)
     breadcrumbs = render_breadcrumbs(home_path=home_path, genre=genre, title=title)
     related_html = render_related_sections(related)
 
@@ -1020,6 +1103,7 @@ def render_release_html(entry: dict, *, home_path: str, css_path: str, related: 
     {axis_bars}
     <p class="summary-line">「{h(one_line_summary)}」</p>
     <p class="flags-line"><b>該当フラグ:</b> {h(flags_line)}</p>
+    {survey_overview_html}
 
     <h2 class="section-title">評価理由</h2>
     <p>{h(reasoning)}</p>
@@ -1351,6 +1435,7 @@ def build_entry_from_release(release: dict) -> dict | None:
         "reasoning": score.get("reasoning", ""),
         "flags": score.get("flags", []),
         "scores": score.get("scores", {}),
+        "survey_overview": score.get("survey_overview", {}),
         "body_text": (release.get("body_text") or "")[:400],
         "filename": filename,
         "relative_path": f"{grade}/{target_slug}/{filename}",
@@ -1451,6 +1536,7 @@ def scan_existing_pages(site_dir: Path) -> list[dict]:
                         "reasoning": meta.get("reasoning", ""),
                         "flags": meta.get("flags", []),
                         "scores": meta.get("scores", {}),
+                        "survey_overview": meta.get("survey_overview", {}),
                         "body_text": meta.get("body_text", ""),
                         "filename": page_path.name,
                         "relative_path": f"{grade}/{target_dir.name}/{page_path.name}",

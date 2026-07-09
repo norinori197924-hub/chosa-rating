@@ -311,6 +311,46 @@ footer a:hover { text-decoration: underline; }
 .flags-line { font-size: 0.82rem; color: var(--muted); margin-top: 6px; }
 .flags-line b { color: var(--ink); }
 
+/* 記事詳細ページの調査概要(折りたたみ) */
+.survey-overview {
+  margin-top: 14px;
+  background: var(--paper);
+  border: 1px solid var(--hairline);
+  border-radius: 6px;
+  padding: 4px 14px;
+}
+.survey-overview summary {
+  cursor: pointer;
+  padding: 8px 4px;
+  font-size: 0.85rem;
+  color: var(--ink);
+  list-style: none;
+}
+.survey-overview summary::-webkit-details-marker { display: none; }
+.survey-overview summary::before {
+  content: "▶";
+  display: inline-block;
+  margin-right: 6px;
+  font-size: 0.7em;
+  color: var(--muted);
+  transition: transform 0.15s ease;
+}
+.survey-overview[open] summary::before { transform: rotate(90deg); }
+.survey-overview-body {
+  padding: 4px 4px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.survey-overview-row {
+  display: grid;
+  grid-template-columns: 9em 1fr;
+  gap: 8px;
+  font-size: 0.82rem;
+}
+.survey-overview-label { color: var(--muted); }
+.survey-overview-value { color: var(--ink); }
+
 .back-link { display: inline-block; margin-top: 20px; font-size: 0.85rem; }
 .back-link a { color: var(--navy-700); text-decoration: none; }
 @media (prefers-color-scheme: dark) { .back-link a { color: var(--gold); } }
@@ -513,4 +553,5 @@ footer a:hover { text-decoration: underline; }
   .detail-head { flex-direction: column; }
   .detail-head .score-block { text-align: left; }
   .axis-bar-row, .axis-bars-full .axis-bar-row { grid-template-columns: 5.5em 1fr 2em; }
+  .survey-overview-row { grid-template-columns: 1fr; gap: 2px; }
 }
