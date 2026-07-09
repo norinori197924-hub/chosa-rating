@@ -198,6 +198,19 @@ def build_user_content(release: dict) -> str:
     )
 
 
+def calculate_grade(total_score: int) -> str:
+    """total_score(0-100)から、開示水準に基づくgradeを算出する。
+
+    A: 70点以上 / B: 40〜69点 / C: 40点未満。
+    """
+    if total_score >= 70:
+        return "A"
+    elif total_score >= 40:
+        return "B"
+    else:
+        return "C"
+
+
 def build_catchy_title(raw_title: str, score: dict) -> str:
     """raw_title・Python側で確定させたgrade/total_score・モデルが生成したtitle_suffixから、
     表示用タイトル(catchy_title)を組み立てる。
