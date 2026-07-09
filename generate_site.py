@@ -27,6 +27,7 @@ import hashlib
 import json
 import logging
 import re
+import shutil
 import subprocess
 import sys
 import time
@@ -42,6 +43,8 @@ logger = logging.getLogger("generate_site")
 BASE_DIR = Path(__file__).resolve().parent
 SCORES_DIR = BASE_DIR / "output" / "scores"
 SITE_DIR = BASE_DIR / "output" / "site"
+STATIC_DIR = BASE_DIR / "static"
+OGP_IMAGE_SOURCE = STATIC_DIR / "ogp-default.png"
 
 VALID_GRADES = {"A", "B", "C"}
 GRADE_UNKNOWN = "unknown"
@@ -91,6 +94,16 @@ GRADE_LEGEND = [
 
 SITE_TITLE = "ホントのところ、その数字。"
 SITE_TAGLINE = "SURVEY RELEASE TRUST INDEX — 調査リリース信頼性評価"
+
+# OGP用の絶対URL・画像(GitHub Pagesの公開URLに合わせる)
+SITE_BASE_URL = "https://norinori197924-hub.github.io/chosa-rating"
+OGP_IMAGE_URL = f"{SITE_BASE_URL}/assets/ogp-default.png"
+
+# about.htmlのog:description用の短い要約(本文冒頭の1〜2文相当)
+ABOUT_OG_DESCRIPTION = (
+    "本サイトは、NORIが個人開発者として運営する、調査・アンケート系プレスリリースの信頼性評価サイトです。"
+    "PR TIMES・@Press配信のプレスリリースをAIが5つの観点で採点しています。"
+)
 
 AFFILIATE_SLOT_HTML = """  <div id="affiliate-slot" class="affiliate-slot">
     <span class="affiliate-label">SPONSORED</span>
@@ -894,8 +907,24 @@ GTAG_SNIPPET = f"""<!-- Google tag (gtag.js) -->
 </script>"""
 
 
-def html_document(*, title: str, css_path: str, body: str) -> str:
+def html_document(
+    *,
+    title: str,
+    css_path: str,
+    body: str,
+    og_title: str,
+    og_description: str,
+    og_url: str,
+    og_type: str,
+) -> str:
     """HTML文書全体をレンダリングする。"""
+    ogp_meta = f"""<meta property="og:title" content="{h(og_title)}">
+<meta property="og:description" content="{h(og_description)}">
+<meta property="og:image" content="{h(OGP_IMAGE_URL)}">
+<meta property="og:url" content="{h(og_url)}">
+<meta property="og:type" content="{h(og_type)}">
+<meta name="twitter:card" content="summary_large_image">"""
+
     return f"""<!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -904,6 +933,7 @@ def html_document(*, title: str, css_path: str, body: str) -> str:
 <title>{h(title)}</title>
 <link rel="stylesheet" href="{css_path}">
 {GTAG_SNIPPET}
+{ogp_meta}
 </head>
 <body>
 {body}
@@ -997,7 +1027,15 @@ def render_release_html(entry: dict, *, home_path: str, css_path: str, related: 
   調査リリースの信頼性を客観的な開示情報に基づき評価しています。<a href="{h(about_path_from_home(home_path))}">このサイトについて</a>
 </footer>"""
 
-    return html_document(title=f"{title} | {SITE_TITLE}", css_path=css_path, body=body)
+    return html_document(
+        title=f"{title} | {SITE_TITLE}",
+        css_path=css_path,
+        body=body,
+        og_title=title,
+        og_description=one_line_summary,
+        og_url=f"{SITE_BASE_URL}/{entry.get('relative_path', '')}",
+        og_type="article",
+    )
 
 
 def render_about_html(*, home_path: str, css_path: str) -> str:
@@ -1026,7 +1064,15 @@ def render_about_html(*, home_path: str, css_path: str) -> str:
   調査リリースの信頼性を客観的な開示情報に基づき評価しています。<a href="{h(about_path)}">このサイトについて</a>
 </footer>"""
 
-    return html_document(title=f"{ABOUT_PAGE_TITLE} | {SITE_TITLE}", css_path=css_path, body=body)
+    return html_document(
+        title=f"{ABOUT_PAGE_TITLE} | {SITE_TITLE}",
+        css_path=css_path,
+        body=body,
+        og_title=f"このサイトについて｜{SITE_TITLE}",
+        og_description=ABOUT_OG_DESCRIPTION,
+        og_url=f"{SITE_BASE_URL}/about.html",
+        og_type="website",
+    )
 
 
 def render_index_card(entry: dict) -> str:
@@ -1066,6 +1112,7 @@ def render_index_html(
     home_path: str,
     css_path: str,
     is_top_level: bool,
+    page_url_path: str,
 ) -> str:
     """一覧ページ(index.html)をレンダリングする。entriesは公開日降順を想定。"""
     numeric_scores = [e["total_score"] for e in entries if isinstance(e.get("total_score"), (int, float))]
@@ -1177,15 +1224,31 @@ def render_index_html(
 </footer>
 {search_script_tag}"""
 
-    return html_document(title=page_title, css_path=css_path, body=body)
+    return html_document(
+        title=page_title,
+        css_path=css_path,
+        body=body,
+        og_title=SITE_TITLE if is_top_level else page_title,
+        og_description=SITE_TAGLINE,
+        og_url=f"{SITE_BASE_URL}/{page_url_path}",
+        og_type="website",
+    )
 
 
 def write_assets(site_dir: Path) -> None:
-    """共通CSS・検索フィルタ用JS・GitHub Pages用の.nojekyllを書き出す。"""
+    """共通CSS・検索フィルタ用JS・OGP画像・GitHub Pages用の.nojekyllを書き出す。"""
     assets_dir = site_dir / "assets"
     assets_dir.mkdir(parents=True, exist_ok=True)
     (assets_dir / "style.css").write_text(CSS_CONTENT, encoding="utf-8")
     (assets_dir / "search.js").write_text(SEARCH_JS_CONTENT, encoding="utf-8")
+
+    if OGP_IMAGE_SOURCE.exists():
+        shutil.copy2(OGP_IMAGE_SOURCE, assets_dir / "ogp-default.png")
+    else:
+        logger.warning(
+            "OGP画像が見つからないためコピーをスキップしました: %s", OGP_IMAGE_SOURCE
+        )
+
     (site_dir / ".nojekyll").write_text("", encoding="utf-8")
 
 
@@ -1368,6 +1431,7 @@ def build_indexes(entries: list[dict], site_dir: Path) -> None:
                 home_path="../../index.html",
                 css_path="../../assets/style.css",
                 is_top_level=False,
+                page_url_path=f"{grade}/{target_slug}/index.html",
             ),
             encoding="utf-8",
         )
@@ -1382,6 +1446,7 @@ def build_indexes(entries: list[dict], site_dir: Path) -> None:
             home_path="index.html",
             css_path="assets/style.css",
             is_top_level=True,
+            page_url_path="index.html",
         ),
         encoding="utf-8",
     )
