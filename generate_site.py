@@ -31,6 +31,7 @@ import shutil
 import subprocess
 import sys
 import time
+from datetime import date
 from html import escape as h
 from pathlib import Path
 
@@ -104,6 +105,12 @@ ABOUT_OG_DESCRIPTION = (
     "本サイトは、NORIが個人開発者として運営する、調査・アンケート系プレスリリースの信頼性評価サイトです。"
     "PR TIMES・@Press配信のプレスリリースをAIが5つの観点で採点しています。"
 )
+
+ROBOTS_TXT_CONTENT = f"""User-agent: *
+Allow: /
+
+Sitemap: {SITE_BASE_URL}/sitemap.xml
+"""
 
 AFFILIATE_SLOT_HTML = """  <div id="affiliate-slot" class="affiliate-slot">
     <span class="affiliate-label">SPONSORED</span>
@@ -931,6 +938,7 @@ def html_document(
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{h(title)}</title>
+<meta name="description" content="{h(og_description)}">
 <link rel="stylesheet" href="{css_path}">
 {GTAG_SNIPPET}
 {ogp_meta}
@@ -1236,7 +1244,7 @@ def render_index_html(
 
 
 def write_assets(site_dir: Path) -> None:
-    """共通CSS・検索フィルタ用JS・OGP画像・GitHub Pages用の.nojekyllを書き出す。"""
+    """共通CSS・検索フィルタ用JS・OGP画像・robots.txt・GitHub Pages用の.nojekyllを書き出す。"""
     assets_dir = site_dir / "assets"
     assets_dir.mkdir(parents=True, exist_ok=True)
     (assets_dir / "style.css").write_text(CSS_CONTENT, encoding="utf-8")
@@ -1250,6 +1258,7 @@ def write_assets(site_dir: Path) -> None:
         )
 
     (site_dir / ".nojekyll").write_text("", encoding="utf-8")
+    (site_dir / "robots.txt").write_text(ROBOTS_TXT_CONTENT, encoding="utf-8")
 
 
 def write_about_page(site_dir: Path) -> None:
@@ -1259,6 +1268,47 @@ def write_about_page(site_dir: Path) -> None:
         render_about_html(home_path="index.html", css_path="assets/style.css"),
         encoding="utf-8",
     )
+
+
+def build_sitemap_urls(all_entries: list[dict]) -> list[dict]:
+    """sitemap.xml向けに、対象ページ(トップ・about・記事詳細)のURL情報を組み立てる。"""
+    today = date.today().isoformat()
+    urls: list[dict] = [
+        {"loc": f"{SITE_BASE_URL}/index.html", "lastmod": today, "priority": "1.0"},
+        {"loc": f"{SITE_BASE_URL}/about.html", "lastmod": today, "priority": "0.3"},
+    ]
+    for entry in all_entries:
+        lastmod = entry.get("published_date") or today
+        urls.append(
+            {
+                "loc": f"{SITE_BASE_URL}/{entry['relative_path']}",
+                "lastmod": lastmod,
+                "priority": "0.5",
+            }
+        )
+    return urls
+
+
+def write_sitemap(all_entries: list[dict], site_dir: Path) -> None:
+    """トップページ・about.html・全記事詳細ページを対象にsitemap.xmlを書き出す。
+    grade×targetのサブ一覧ページは対象に含めない。"""
+    urls = build_sitemap_urls(all_entries)
+    url_blocks = "\n".join(
+        "  <url>\n"
+        f"    <loc>{h(u['loc'])}</loc>\n"
+        f"    <lastmod>{h(u['lastmod'])}</lastmod>\n"
+        f"    <priority>{u['priority']}</priority>\n"
+        "  </url>"
+        for u in urls
+    )
+    xml = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        f"{url_blocks}\n"
+        "</urlset>\n"
+    )
+    site_dir.mkdir(parents=True, exist_ok=True)
+    (site_dir / "sitemap.xml").write_text(xml, encoding="utf-8")
 
 
 def build_entry_from_release(release: dict) -> dict | None:
@@ -1555,6 +1605,7 @@ def build_site(releases: list[dict], site_dir: Path = SITE_DIR) -> None:
         write_release_page(entry, all_entries, site_dir)
 
     build_indexes(all_entries, site_dir)
+    write_sitemap(all_entries, site_dir)
 
     logger.info(
         "サイト生成完了: 新規/更新 %d件、全体で %d件のページを再構築 -> %s",

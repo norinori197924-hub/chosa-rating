@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://norinori197924-hub.github.io/chosa-rating/sitemap.xml
