@@ -1274,7 +1274,7 @@ def build_sitemap_urls(all_entries: list[dict]) -> list[dict]:
     """sitemap.xml向けに、対象ページ(トップ・about・記事詳細)のURL情報を組み立てる。"""
     today = date.today().isoformat()
     urls: list[dict] = [
-        {"loc": f"{SITE_BASE_URL}/index.html", "lastmod": today, "priority": "1.0"},
+        {"loc": f"{SITE_BASE_URL}/", "lastmod": today, "priority": "1.0"},
         {"loc": f"{SITE_BASE_URL}/about.html", "lastmod": today, "priority": "0.3"},
     ]
     for entry in all_entries:
