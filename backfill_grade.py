@@ -27,6 +27,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+from datetime import datetime, timezone
 from pathlib import Path
 
 import anthropic
@@ -176,8 +177,11 @@ def needs_survey_overview(entry: dict) -> bool:
     return not entry.get("survey_overview")
 
 
-def extract_survey_overview(client: anthropic.Anthropic, entry: dict) -> dict | None:
+def extract_survey_overview(
+    client: anthropic.Anthropic, entry: dict
+) -> tuple[dict | None, int, int]:
     """本文(body_text)からsurvey_overviewのみをAPIで抽出する。
+    戻り値は (抽出結果 or None, 入力トークン数, 出力トークン数)。
 
     output/site上のbody_textは検索用に400文字へ切り詰められたものしか保持していないため、
     元記事より抽出精度が落ちる可能性がある点に留意すること。
@@ -195,14 +199,45 @@ def extract_survey_overview(client: anthropic.Anthropic, entry: dict) -> dict | 
         },
         messages=[{"role": "user", "content": user_content}],
     )
+    input_tokens = response.usage.input_tokens
+    output_tokens = response.usage.output_tokens
     text = next((b.text for b in response.content if b.type == "text"), "")
     try:
-        return json.loads(text)
+        return json.loads(text), input_tokens, output_tokens
     except json.JSONDecodeError:
         logger.error(
             "survey_overviewのJSONパースに失敗しました: %s", entry.get("relative_path")
         )
-        return None
+        return None, input_tokens, output_tokens
+
+
+def write_backfill_usage_record(usage_totals: dict) -> None:
+    """フェーズ2のトークン使用量を、analyzer.pyと同じoutput/usage/配下に記録する。
+    analyzer.pyの日次バッチ分(YYYY-MM-DD.json)と衝突しないよう、専用のファイル名にする。"""
+    analyzer.USAGE_DIR.mkdir(parents=True, exist_ok=True)
+    timestamp = datetime.now(timezone.utc).astimezone().strftime("%Y-%m-%dT%H%M%S")
+    usage_path = analyzer.USAGE_DIR / f"backfill_grade_survey_overview_{timestamp}.json"
+    usage_path.write_text(
+        json.dumps(
+            {
+                "task": "backfill_grade_survey_overview",
+                "model": analyzer.MODEL,
+                "request_count": usage_totals["request_count"],
+                "input_tokens": usage_totals["input_tokens"],
+                "output_tokens": usage_totals["output_tokens"],
+            },
+            ensure_ascii=False,
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+    logger.info(
+        "トークン使用量を記録しました: %s (リクエスト%d件、入力%dトークン/出力%dトークン)",
+        usage_path,
+        usage_totals["request_count"],
+        usage_totals["input_tokens"],
+        usage_totals["output_tokens"],
+    )
 
 
 def apply_survey_overview_extraction(entries: list[dict], site_dir: Path) -> list[dict]:
@@ -215,17 +250,31 @@ def apply_survey_overview_extraction(entries: list[dict], site_dir: Path) -> lis
     logger.info("survey_overview抽出対象: %d件", len(targets))
     client = anthropic.Anthropic()
     updated_entries = list(entries)
+    usage_totals = {"request_count": 0, "input_tokens": 0, "output_tokens": 0}
+    succeeded = 0
+    failed = 0
     for i, entry in enumerate(updated_entries):
         if not needs_survey_overview(entry):
             continue
-        overview = extract_survey_overview(client, entry)
+        overview, input_tokens, output_tokens = extract_survey_overview(client, entry)
+        usage_totals["request_count"] += 1
+        usage_totals["input_tokens"] += input_tokens
+        usage_totals["output_tokens"] += output_tokens
         if overview is None:
+            failed += 1
             continue
         updated_entries[i] = {**entry, "survey_overview": overview}
+        succeeded += 1
         logger.info("survey_overviewを抽出しました: %s", entry.get("relative_path"))
 
     for entry in updated_entries:
         gs.write_release_page(entry, updated_entries, site_dir)
+
+    write_backfill_usage_record(usage_totals)
+    logger.info(
+        "survey_overview抽出結果: 成功%d件 / 失敗%d件 / 対象%d件",
+        succeeded, failed, len(targets),
+    )
 
     return updated_entries
 
