@@ -138,8 +138,36 @@ ABOUT_CONTENT_HTML = """  <article class="detail-card">
       <li>本サイトの評価点は、あくまで「開示情報の透明性」を測る参考指標であり、調査結果そのものの正しさ・妥当性を保証するものではありません。</li>
       <li>AIによる自動採点のため、稀に判断に誤りが含まれる可能性があります。</li>
       <li>評価対象の追加・変更は、運営者の判断により予告なく行うことがあります。</li>
+    </ul>"""
+
+PRIVACY_POLICY_PAGE_TITLE = "プライバシーポリシー"
+
+# privacy-policy.htmlのog:description用の短い要約
+PRIVACY_POLICY_OG_DESCRIPTION = (
+    f"{SITE_TITLE}のプライバシーポリシー。アクセス解析(GA4)・広告配信・Cookieの利用について説明します。"
+)
+
+PRIVACY_POLICY_CONTENT_HTML = """  <article class="detail-card">
+    <h1 class="detail-title">プライバシーポリシー</h1>
+
+    <h2 class="section-title">アクセス解析ツールについて</h2>
+    <p>本サイトでは、Google社が提供するアクセス解析ツール「Google Analytics 4(GA4)」を導入しています。このツールはCookieを使用して、個人を特定しない形でトラフィックデータを収集します。収集される情報は匿名の統計データであり、氏名・住所等の個人を特定する情報は含まれません。この機能はCookieを無効にすることで収集を拒否できます。</p>
+    <p>詳細は下記のGoogleのポリシーをご覧ください。</p>
+    <ul>
+      <li><a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Googleのプライバシーポリシー</a></li>
     </ul>
-  </article>"""
+
+    <h2 class="section-title">広告配信について</h2>
+    <p>本サイトは Google AdSense による広告配信を行っています。第三者配信事業者(Google)がCookieを使用し、訪問者の他サイトでのアクセス情報等に基づいて広告を配信する場合があります。</p>
+    <p>また、将来的にアフィリエイト(ASP)広告を導入する可能性があります。導入した場合、提携する広告配信事業者がCookieを使用する場合があります。</p>
+    <p>広告のパーソナライズ設定については、下記のGoogleのポリシーからオプトアウトが可能です。</p>
+    <ul>
+      <li><a href="https://adssettings.google.com/" target="_blank" rel="noopener noreferrer">広告設定(Google)</a></li>
+    </ul>
+
+    <h2 class="section-title">Cookieの利用について</h2>
+    <p>本サイトは、アクセス解析および広告配信(Google AdSense)のためにCookieを使用しています。また、将来的にアフィリエイト広告を導入した場合、提携する広告配信事業者によりCookieが使用される可能性があります。</p>
+    <p>Cookieの使用を望まない場合は、お使いのブラウザの設定から無効化することができます。ただし、無効化すると本サイトの一部機能が正常に動作しない場合があります。</p>"""
 
 CSS_CONTENT = """:root {
   --navy-900: #0b1f3a;
@@ -854,6 +882,11 @@ def about_path_from_home(home_path: str) -> str:
     return home_path.replace("index.html", "about.html")
 
 
+def privacy_policy_path_from_home(home_path: str) -> str:
+    """home_path(トップページへの相対パス)から、同じ階層にある privacy-policy.html への相対パスを導出する。"""
+    return home_path.replace("index.html", "privacy-policy.html")
+
+
 def genre_anchor(genre: str) -> str:
     """ジャンル名からアンカーID(CSS/URL安全な文字列)を生成する。"""
     return "genre-" + hashlib.md5((genre or GENRE_UNKNOWN).encode("utf-8")).hexdigest()[:8]
@@ -1155,6 +1188,8 @@ def render_about_html(*, home_path: str, css_path: str) -> str:
 <main>
   {breadcrumbs}
 {ABOUT_CONTENT_HTML}
+    <p>アクセス解析・Cookieの利用については、<a href="{h(privacy_policy_path_from_home(home_path))}">プライバシーポリシー</a>をご覧ください。</p>
+  </article>
 
   <p class="back-link"><a href="{home_path}">&laquo; 一覧に戻る</a></p>
 </main>
@@ -1169,6 +1204,52 @@ def render_about_html(*, home_path: str, css_path: str) -> str:
         og_title=f"このサイトについて｜{SITE_TITLE}",
         og_description=ABOUT_OG_DESCRIPTION,
         og_url=f"{SITE_BASE_URL}/about.html",
+        og_type="website",
+    )
+
+
+def render_privacy_policy_html(*, home_path: str, css_path: str) -> str:
+    """固定ページ「プライバシーポリシー」(/privacy-policy.html)をレンダリングする。"""
+    about_path = about_path_from_home(home_path)
+    breadcrumbs = f"""<nav class="breadcrumbs" aria-label="パンくずリスト">
+  <ol>
+    <li><a href="{h(home_path)}">トップ</a></li>
+    <li aria-current="page">{h(PRIVACY_POLICY_PAGE_TITLE)}</li>
+  </ol>
+</nav>"""
+
+    body = f"""<div class="masthead">
+  <div class="masthead-inner">
+    <a class="brand" href="{home_path}">{h(SITE_TITLE)}</a>
+    <span class="tagline">{h(SITE_TAGLINE)}</span>
+  </div>
+</div>
+<main>
+  {breadcrumbs}
+{PRIVACY_POLICY_CONTENT_HTML}
+
+    <h2 class="section-title">お問い合わせ</h2>
+    <p>本ポリシーに関するお問い合わせは、<a href="{h(about_path)}">運営者情報</a>ページの連絡先、または以下のメールアドレスまでご連絡ください。</p>
+    <p>連絡先メールアドレス: norinori197924@gmail.com</p>
+
+    <h2 class="section-title">改定について</h2>
+    <p>本ポリシーは、法令の変更やサービス内容の変更等に応じて、予告なく変更されることがあります。</p>
+    <p>最終更新日: {date.today().year}年{date.today().month}月{date.today().day}日</p>
+  </article>
+
+  <p class="back-link"><a href="{home_path}">&laquo; 一覧に戻る</a></p>
+</main>
+<footer>
+  調査リリースの信頼性を客観的な開示情報に基づき評価しています。<a href="{h(about_path)}">このサイトについて</a>
+</footer>"""
+
+    return html_document(
+        title=f"{PRIVACY_POLICY_PAGE_TITLE} | {SITE_TITLE}",
+        css_path=css_path,
+        body=body,
+        og_title=f"{PRIVACY_POLICY_PAGE_TITLE}｜{SITE_TITLE}",
+        og_description=PRIVACY_POLICY_OG_DESCRIPTION,
+        og_url=f"{SITE_BASE_URL}/privacy-policy.html",
         og_type="website",
     )
 
@@ -1360,12 +1441,22 @@ def write_about_page(site_dir: Path) -> None:
     )
 
 
+def write_privacy_policy_page(site_dir: Path) -> None:
+    """固定ページ「プライバシーポリシー」をsite_dir/privacy-policy.htmlとして書き出す。"""
+    site_dir.mkdir(parents=True, exist_ok=True)
+    (site_dir / "privacy-policy.html").write_text(
+        render_privacy_policy_html(home_path="index.html", css_path="assets/style.css"),
+        encoding="utf-8",
+    )
+
+
 def build_sitemap_urls(all_entries: list[dict]) -> list[dict]:
-    """sitemap.xml向けに、対象ページ(トップ・about・記事詳細)のURL情報を組み立てる。"""
+    """sitemap.xml向けに、対象ページ(トップ・about・プライバシーポリシー・記事詳細)のURL情報を組み立てる。"""
     today = date.today().isoformat()
     urls: list[dict] = [
         {"loc": f"{SITE_BASE_URL}/", "lastmod": today, "priority": "1.0"},
         {"loc": f"{SITE_BASE_URL}/about.html", "lastmod": today, "priority": "0.3"},
+        {"loc": f"{SITE_BASE_URL}/privacy-policy.html", "lastmod": today, "priority": "0.3"},
     ]
     for entry in all_entries:
         lastmod = entry.get("published_date") or today
@@ -1675,6 +1766,7 @@ def build_site(releases: list[dict], site_dir: Path = SITE_DIR) -> None:
     """
     write_assets(site_dir)
     write_about_page(site_dir)
+    write_privacy_policy_page(site_dir)
 
     existing_entries = scan_existing_pages(site_dir)
     fresh_entries = [
