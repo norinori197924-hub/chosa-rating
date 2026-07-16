@@ -954,6 +954,11 @@ GTAG_SNIPPET = f"""<!-- Google tag (gtag.js) -->
   gtag('config', '{GTAG_ID}');
 </script>"""
 
+ADSENSE_ID = "ca-pub-9507761841542746"
+
+ADSENSE_SNIPPET = f"""<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={ADSENSE_ID}"
+     crossorigin="anonymous"></script>"""
+
 
 def html_document(
     *,
@@ -982,6 +987,7 @@ def html_document(
 <meta name="description" content="{h(og_description)}">
 <link rel="stylesheet" href="{css_path}">
 {GTAG_SNIPPET}
+{ADSENSE_SNIPPET}
 {ogp_meta}
 </head>
 <body>
