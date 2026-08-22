@@ -1799,8 +1799,14 @@ def build_site(releases: list[dict], site_dir: Path = SITE_DIR) -> None:
     )
 
 
-def find_input_path(date_str: str | None) -> Path:
-    """入力JSONファイルのパスを決定する。指定がなければ最新のファイルを使う。"""
+def find_input_path(date_str: str | None) -> Path | None:
+    """入力JSONファイルのパスを決定する。指定がなければ最新のファイルを使う。
+
+    date_str未指定時、output/scores配下にファイルが1件もない場合(ディレクトリが
+    存在しない場合を含む)はNoneを返す。これは「今日は新着の採点対象記事が0件
+    だった」という正常なケースであり、呼び出し側で新着0件として扱う。
+    date_str指定時は、そのファイルが存在しないのは異常なので従来通りエラーにする。
+    """
     if date_str:
         path = SCORES_DIR / f"{date_str}.json"
         if not path.exists():
@@ -1809,13 +1815,20 @@ def find_input_path(date_str: str | None) -> Path:
 
     candidates = sorted(SCORES_DIR.glob("*.json"))
     if not candidates:
-        raise FileNotFoundError(f"入力ファイルが見つかりません: {SCORES_DIR}")
+        return None
     return candidates[-1]
 
 
 def main() -> None:
     date_arg = sys.argv[1] if len(sys.argv) > 1 else None
     input_path = find_input_path(date_arg)
+
+    if input_path is None:
+        logger.info(
+            "新着の採点対象記事が0件のため、サイト生成をスキップします: %s",
+            SCORES_DIR,
+        )
+        return
 
     logger.info("読み込み中: %s", input_path)
     releases = json.loads(input_path.read_text(encoding="utf-8"))
