@@ -2,17 +2,17 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://norinori197924-hub.github.io/chosa-rating/</loc>
-    <lastmod>2026-08-25</lastmod>
+    <lastmod>2026-08-26</lastmod>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://norinori197924-hub.github.io/chosa-rating/about.html</loc>
-    <lastmod>2026-08-25</lastmod>
+    <lastmod>2026-08-26</lastmod>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://norinori197924-hub.github.io/chosa-rating/privacy-policy.html</loc>
-    <lastmod>2026-08-25</lastmod>
+    <lastmod>2026-08-26</lastmod>
     <priority>0.3</priority>
   </url>
   <url>
@@ -33,6 +33,11 @@
   <url>
     <loc>https://norinori197924-hub.github.io/chosa-rating/B/business/000c74caa2e2.html</loc>
     <lastmod>2026-07-14T10:00:00+09:00</lastmod>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://norinori197924-hub.github.io/chosa-rating/B/business/11e5134847cc.html</loc>
+    <lastmod>2026-08-25T00:00:00</lastmod>
     <priority>0.5</priority>
   </url>
   <url>
@@ -266,6 +271,11 @@
     <priority>0.5</priority>
   </url>
   <url>
+    <loc>https://norinori197924-hub.github.io/chosa-rating/B/consumer/5677b2c03b5d.html</loc>
+    <lastmod>2026-08-25T00:00:00</lastmod>
+    <priority>0.5</priority>
+  </url>
+  <url>
     <loc>https://norinori197924-hub.github.io/chosa-rating/B/consumer/58bfc7f6602d.html</loc>
     <lastmod>2026-07-30T00:00:00</lastmod>
     <priority>0.5</priority>
@@ -368,6 +378,11 @@
   <url>
     <loc>https://norinori197924-hub.github.io/chosa-rating/B/consumer/b0690cb56282.html</loc>
     <lastmod>2017-09-14T00:00:00</lastmod>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://norinori197924-hub.github.io/chosa-rating/B/consumer/b74604b7c6df.html</loc>
+    <lastmod>2026-08-24T11:00:00+09:00</lastmod>
     <priority>0.5</priority>
   </url>
   <url>
@@ -513,6 +528,11 @@
   <url>
     <loc>https://norinori197924-hub.github.io/chosa-rating/C/business/3ac7da10beb7.html</loc>
     <lastmod>2026-07-26T00:00:00</lastmod>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://norinori197924-hub.github.io/chosa-rating/C/business/5084f721676b.html</loc>
+    <lastmod>2026-08-24T11:40:00+09:00</lastmod>
     <priority>0.5</priority>
   </url>
   <url>
@@ -916,23 +936,33 @@
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://norinori197924-hub.github.io/chosa-rating/B/consumer/5677b2c03b5d.html</loc>
-    <lastmod>2026-08-25T00:00:00</lastmod>
+    <loc>https://norinori197924-hub.github.io/chosa-rating/B/consumer/1c8c0da6e058.html</loc>
+    <lastmod>2026-08-26T00:00:00</lastmod>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://norinori197924-hub.github.io/chosa-rating/B/business/11e5134847cc.html</loc>
-    <lastmod>2026-08-25T00:00:00</lastmod>
+    <loc>https://norinori197924-hub.github.io/chosa-rating/B/consumer/717838d34c0e.html</loc>
+    <lastmod>2026-08-26T00:00:00</lastmod>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://norinori197924-hub.github.io/chosa-rating/C/business/5084f721676b.html</loc>
-    <lastmod>2026-08-24T11:40:00+09:00</lastmod>
+    <loc>https://norinori197924-hub.github.io/chosa-rating/B/consumer/ecf4ad80cd0e.html</loc>
+    <lastmod>2026-08-26T00:00:00</lastmod>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://norinori197924-hub.github.io/chosa-rating/B/consumer/b74604b7c6df.html</loc>
-    <lastmod>2026-08-24T11:00:00+09:00</lastmod>
+    <loc>https://norinori197924-hub.github.io/chosa-rating/B/business/8418667d1468.html</loc>
+    <lastmod>2026-08-26T00:00:00</lastmod>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://norinori197924-hub.github.io/chosa-rating/C/consumer/36cd0415f9e4.html</loc>
+    <lastmod>2026-08-25T13:30:00+09:00</lastmod>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://norinori197924-hub.github.io/chosa-rating/C/business/76af5f766e29.html</loc>
+    <lastmod>2026-08-25T12:47:00+09:00</lastmod>
     <priority>0.5</priority>
   </url>
 </urlset>
