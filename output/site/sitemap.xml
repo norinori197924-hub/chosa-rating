@@ -2,17 +2,17 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://norinori197924-hub.github.io/chosa-rating/</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://norinori197924-hub.github.io/chosa-rating/about.html</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://norinori197924-hub.github.io/chosa-rating/privacy-policy.html</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <priority>0.3</priority>
   </url>
   <url>
@@ -138,6 +138,11 @@
   <url>
     <loc>https://norinori197924-hub.github.io/chosa-rating/B/business/87ad52f540be.html</loc>
     <lastmod>2026-09-28T14:30:00+09:00</lastmod>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://norinori197924-hub.github.io/chosa-rating/B/business/89c5567ce1ff.html</loc>
+    <lastmod>2026-10-02T13:00:00+09:00</lastmod>
     <priority>0.5</priority>
   </url>
   <url>
@@ -1351,6 +1356,11 @@
     <priority>0.5</priority>
   </url>
   <url>
+    <loc>https://norinori197924-hub.github.io/chosa-rating/C/consumer/9c2b49a46c7a.html</loc>
+    <lastmod>2026-10-03T00:00:00</lastmod>
+    <priority>0.5</priority>
+  </url>
+  <url>
     <loc>https://norinori197924-hub.github.io/chosa-rating/C/consumer/9e4e5c94ae91.html</loc>
     <lastmod>2026-07-21T13:05:00+09:00</lastmod>
     <priority>0.5</priority>
@@ -1546,13 +1556,18 @@
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://norinori197924-hub.github.io/chosa-rating/C/consumer/9c2b49a46c7a.html</loc>
-    <lastmod>2026-10-03T00:00:00</lastmod>
+    <loc>https://norinori197924-hub.github.io/chosa-rating/B/consumer/d48e871f3fe9.html</loc>
+    <lastmod>2026-10-04T00:00:00</lastmod>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://norinori197924-hub.github.io/chosa-rating/B/business/89c5567ce1ff.html</loc>
-    <lastmod>2026-10-02T13:00:00+09:00</lastmod>
+    <loc>https://norinori197924-hub.github.io/chosa-rating/B/consumer/7d6ebc810810.html</loc>
+    <lastmod>2026-10-04T00:00:00</lastmod>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://norinori197924-hub.github.io/chosa-rating/C/consumer/e7fcf0e4ee7b.html</loc>
+    <lastmod>2026-10-04T00:00:00</lastmod>
     <priority>0.5</priority>
   </url>
 </urlset>
