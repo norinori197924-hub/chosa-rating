@@ -2,17 +2,17 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://norinori197924-hub.github.io/chosa-rating/</loc>
-    <lastmod>2026-10-06</lastmod>
+    <lastmod>2026-10-07</lastmod>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://norinori197924-hub.github.io/chosa-rating/about.html</loc>
-    <lastmod>2026-10-06</lastmod>
+    <lastmod>2026-10-07</lastmod>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://norinori197924-hub.github.io/chosa-rating/privacy-policy.html</loc>
-    <lastmod>2026-10-06</lastmod>
+    <lastmod>2026-10-07</lastmod>
     <priority>0.3</priority>
   </url>
   <url>
@@ -253,6 +253,11 @@
   <url>
     <loc>https://norinori197924-hub.github.io/chosa-rating/B/consumer/0e443832488a.html</loc>
     <lastmod>2026-09-26T00:00:00</lastmod>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://norinori197924-hub.github.io/chosa-rating/B/consumer/1151698a526a.html</loc>
+    <lastmod>2026-10-06T10:00:00+09:00</lastmod>
     <priority>0.5</priority>
   </url>
   <url>
@@ -1031,6 +1036,11 @@
     <priority>0.5</priority>
   </url>
   <url>
+    <loc>https://norinori197924-hub.github.io/chosa-rating/C/business/f4e865073c3b.html</loc>
+    <lastmod>2026-09-28T17:15:00+09:00</lastmod>
+    <priority>0.5</priority>
+  </url>
+  <url>
     <loc>https://norinori197924-hub.github.io/chosa-rating/C/business/f5736261b0c9.html</loc>
     <lastmod>2026-07-06T00:00:00</lastmod>
     <priority>0.5</priority>
@@ -1236,8 +1246,18 @@
     <priority>0.5</priority>
   </url>
   <url>
+    <loc>https://norinori197924-hub.github.io/chosa-rating/C/consumer/5bdfa13d84e8.html</loc>
+    <lastmod>2026-10-06T10:00:00+09:00</lastmod>
+    <priority>0.5</priority>
+  </url>
+  <url>
     <loc>https://norinori197924-hub.github.io/chosa-rating/C/consumer/5cbecf4b4dfb.html</loc>
     <lastmod>2026-08-04T00:00:00</lastmod>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://norinori197924-hub.github.io/chosa-rating/C/consumer/5f1c3381d1b5.html</loc>
+    <lastmod>2026-10-06T07:00:00+09:00</lastmod>
     <priority>0.5</priority>
   </url>
   <url>
@@ -1278,6 +1298,11 @@
   <url>
     <loc>https://norinori197924-hub.github.io/chosa-rating/C/consumer/6a1ef263288f.html</loc>
     <lastmod>2026-08-18T00:00:00</lastmod>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://norinori197924-hub.github.io/chosa-rating/C/consumer/6ab18ccbc624.html</loc>
+    <lastmod>2026-10-06T00:00:00</lastmod>
     <priority>0.5</priority>
   </url>
   <url>
@@ -1571,28 +1596,23 @@
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://norinori197924-hub.github.io/chosa-rating/C/consumer/6ab18ccbc624.html</loc>
+    <loc>https://norinori197924-hub.github.io/chosa-rating/B/business/9b00ef4b1977.html</loc>
     <lastmod>2026-10-06T00:00:00</lastmod>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://norinori197924-hub.github.io/chosa-rating/C/consumer/5bdfa13d84e8.html</loc>
-    <lastmod>2026-10-06T10:00:00+09:00</lastmod>
+    <loc>https://norinori197924-hub.github.io/chosa-rating/B/consumer/3487d8ae2991.html</loc>
+    <lastmod>2026-10-06T00:00:00</lastmod>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://norinori197924-hub.github.io/chosa-rating/B/consumer/1151698a526a.html</loc>
-    <lastmod>2026-10-06T10:00:00+09:00</lastmod>
+    <loc>https://norinori197924-hub.github.io/chosa-rating/B/consumer/29d8370f1969.html</loc>
+    <lastmod>2026-10-07T00:00:00</lastmod>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://norinori197924-hub.github.io/chosa-rating/C/consumer/5f1c3381d1b5.html</loc>
-    <lastmod>2026-10-06T07:00:00+09:00</lastmod>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://norinori197924-hub.github.io/chosa-rating/C/business/f4e865073c3b.html</loc>
-    <lastmod>2026-09-28T17:15:00+09:00</lastmod>
+    <loc>https://norinori197924-hub.github.io/chosa-rating/C/consumer/5277fafdc786.html</loc>
+    <lastmod>2026-10-07T00:00:00</lastmod>
     <priority>0.5</priority>
   </url>
 </urlset>
