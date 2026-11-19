@@ -2,17 +2,17 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://norinori197924-hub.github.io/chosa-rating/</loc>
-    <lastmod>2026-11-18</lastmod>
+    <lastmod>2026-11-19</lastmod>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://norinori197924-hub.github.io/chosa-rating/about.html</loc>
-    <lastmod>2026-11-18</lastmod>
+    <lastmod>2026-11-19</lastmod>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://norinori197924-hub.github.io/chosa-rating/privacy-policy.html</loc>
-    <lastmod>2026-11-18</lastmod>
+    <lastmod>2026-11-19</lastmod>
     <priority>0.3</priority>
   </url>
   <url>
@@ -198,6 +198,11 @@
   <url>
     <loc>https://norinori197924-hub.github.io/chosa-rating/B/business/934d4f7720ef.html</loc>
     <lastmod>2026-10-29T09:00:00+09:00</lastmod>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://norinori197924-hub.github.io/chosa-rating/B/business/9481b2290065.html</loc>
+    <lastmod>2026-11-18T00:00:00</lastmod>
     <priority>0.5</priority>
   </url>
   <url>
@@ -676,6 +681,11 @@
     <priority>0.5</priority>
   </url>
   <url>
+    <loc>https://norinori197924-hub.github.io/chosa-rating/B/consumer/665e8e18b4b7.html</loc>
+    <lastmod>2026-11-18T00:00:00</lastmod>
+    <priority>0.5</priority>
+  </url>
+  <url>
     <loc>https://norinori197924-hub.github.io/chosa-rating/B/consumer/68fcf362697a.html</loc>
     <lastmod>2026-10-20T11:30:00+09:00</lastmod>
     <priority>0.5</priority>
@@ -693,6 +703,11 @@
   <url>
     <loc>https://norinori197924-hub.github.io/chosa-rating/B/consumer/6a89c2c758d4.html</loc>
     <lastmod>2026-11-17T00:00:00</lastmod>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://norinori197924-hub.github.io/chosa-rating/B/consumer/6d71a87a22d4.html</loc>
+    <lastmod>2026-11-17T16:00:00+09:00</lastmod>
     <priority>0.5</priority>
   </url>
   <url>
@@ -1791,6 +1806,11 @@
     <priority>0.5</priority>
   </url>
   <url>
+    <loc>https://norinori197924-hub.github.io/chosa-rating/C/consumer/56f2c75b6250.html</loc>
+    <lastmod>2026-11-17T10:30:00+09:00</lastmod>
+    <priority>0.5</priority>
+  </url>
+  <url>
     <loc>https://norinori197924-hub.github.io/chosa-rating/C/consumer/5723b687e0bf.html</loc>
     <lastmod>2026-09-16T00:00:00</lastmod>
     <priority>0.5</priority>
@@ -2013,6 +2033,11 @@
   <url>
     <loc>https://norinori197924-hub.github.io/chosa-rating/C/consumer/a6ec19491908.html</loc>
     <lastmod>2026-09-30T00:00:00</lastmod>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://norinori197924-hub.github.io/chosa-rating/C/consumer/ab49d805e650.html</loc>
+    <lastmod>2026-11-18T10:00:00+09:00</lastmod>
     <priority>0.5</priority>
   </url>
   <url>
@@ -2251,28 +2276,43 @@
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://norinori197924-hub.github.io/chosa-rating/B/consumer/665e8e18b4b7.html</loc>
-    <lastmod>2026-11-18T00:00:00</lastmod>
+    <loc>https://norinori197924-hub.github.io/chosa-rating/C/consumer/595c482c2dbc.html</loc>
+    <lastmod>2026-11-19T00:00:00</lastmod>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://norinori197924-hub.github.io/chosa-rating/B/business/9481b2290065.html</loc>
-    <lastmod>2026-11-18T00:00:00</lastmod>
+    <loc>https://norinori197924-hub.github.io/chosa-rating/C/consumer/398e2cf26738.html</loc>
+    <lastmod>2026-11-19T00:00:00</lastmod>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://norinori197924-hub.github.io/chosa-rating/C/consumer/ab49d805e650.html</loc>
-    <lastmod>2026-11-18T10:00:00+09:00</lastmod>
+    <loc>https://norinori197924-hub.github.io/chosa-rating/C/consumer/b1e5badcdf03.html</loc>
+    <lastmod>2026-11-19T00:00:00</lastmod>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://norinori197924-hub.github.io/chosa-rating/B/consumer/6d71a87a22d4.html</loc>
-    <lastmod>2026-11-17T16:00:00+09:00</lastmod>
+    <loc>https://norinori197924-hub.github.io/chosa-rating/B/consumer/9d4f80f08fc5.html</loc>
+    <lastmod>2026-11-19T00:00:00</lastmod>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://norinori197924-hub.github.io/chosa-rating/C/consumer/56f2c75b6250.html</loc>
-    <lastmod>2026-11-17T10:30:00+09:00</lastmod>
+    <loc>https://norinori197924-hub.github.io/chosa-rating/B/consumer/4242bd45c8a5.html</loc>
+    <lastmod>2026-11-19T00:00:00</lastmod>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://norinori197924-hub.github.io/chosa-rating/B/consumer/f6ab5aa7051f.html</loc>
+    <lastmod>2026-11-19T00:00:00</lastmod>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://norinori197924-hub.github.io/chosa-rating/B/consumer/4b18a2c1b39f.html</loc>
+    <lastmod>2026-11-19T00:00:00</lastmod>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://norinori197924-hub.github.io/chosa-rating/C/business/f2fd20706443.html</loc>
+    <lastmod>2026-11-18T12:25:00+09:00</lastmod>
     <priority>0.5</priority>
   </url>
 </urlset>
